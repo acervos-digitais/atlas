@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { readFileSync } from 'node:fs';
 
@@ -12,5 +12,10 @@ export default defineConfig({
     // Injeta a versão do package.json como constante de build.
     // Acessível via APP_VERSION em constants.js. Fonte única de verdade.
     __APP_VERSION__: JSON.stringify(pkg.version),
+  },
+  test: {
+    environment: 'node',
+    globals: true,
+    include: ['src/lib/__tests__/**/*.test.js'],
   },
 });
