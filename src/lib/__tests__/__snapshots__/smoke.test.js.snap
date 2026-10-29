@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`TYPE_COLOR_HOVER — par distinto por tipo snapshot de TYPE_COLOR_HOVER 1`] = `
+exports[`TYPE_COLOR_HOVER — par distinto por tipo > snapshot de TYPE_COLOR_HOVER 1`] = `
 {
   "acervo": "#bbbbbb",
   "birth": "#f5e51c",
