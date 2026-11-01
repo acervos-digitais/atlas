@@ -149,7 +149,7 @@
 
   .header-section--locality {
     flex: 0 1 345px;
-    min-width: 200px;
+    min-width: var(--header-locality-min-width);
     flex-shrink: 1;
     width: 100%;
   }
@@ -235,6 +235,8 @@
     :global(.autocomplete-section) {
       border-top: none;
       padding: 0;
+      min-width: 0;
+      flex: 1;
     }
     :global(.section-header) {
       display: none;
@@ -319,4 +321,25 @@
     }
   }
 
+  @media (min-width: 760px) and (max-width: 1024px) {
+    .header-bar {
+      gap: var(--header-compact-gap);
+    }
+
+    .header-section {
+      max-width: 100%;
+    }
+
+    .header-section--locality {
+      flex-basis: var(--header-locality-min-width);
+    }
+
+    .header-section__label {
+      white-space: normal;
+    }
+
+    .header-bar__pills {
+      flex-wrap: wrap;
+    }
+  }
 </style>
