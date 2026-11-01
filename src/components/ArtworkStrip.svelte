@@ -117,7 +117,12 @@ import { formatAcervoLabel } from '../lib/dataUtils.js';
    * Sem suporte a IntersectionObserver, usa o carregamento nativo.
    */
   function lazyImg(node, { src, deferred }) {
+    let scheduledSource;
+    let scheduledDeferred;
     const schedule = (source, defer) => {
+      if (source === scheduledSource && defer === scheduledDeferred) return;
+      scheduledSource = source;
+      scheduledDeferred = defer;
       observer?.unobserve(node);
       node.removeAttribute('src');
       node.removeAttribute('data-lazy-src');
