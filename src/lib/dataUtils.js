@@ -224,7 +224,9 @@ export function parseArtworkDict(dict) {
       museum: ACERVO_ALIASES[entry.museum ?? ''] ?? entry.museum ?? '',
       title: entry.title ?? '',
       year: typeof entry.year === 'number' && entry.year <= CURRENT_YEAR ? entry.year : null,
-      image: entry.image?.image ?? '',
+      image: typeof entry.image?.image === 'string'
+        ? entry.image.image.trim().replace(/^http:\/\/commons\.wikimedia\.org\//, 'https://commons.wikimedia.org/')
+        : '',
       url: entry.url ?? '',
     };
 
