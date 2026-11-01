@@ -662,6 +662,8 @@ export const CSV_ACERVOS_PATH = 'acervos_geolocated.csv';
  * Carregado via fetch com BASE_URL (para GitHub Pages).
  */
 export const JSON_ARTWORKS_PATH = 'artwork.json';
+/** Alternativas verificadas pelo script offline de auditoria de imagens. */
+export const JSON_ARTWORK_IMAGE_FALLBACKS_PATH = 'artwork-image-fallbacks.json';
 
 /**
  * TopoJSON de fronteiras de países e continentes (Natural Earth 110m).

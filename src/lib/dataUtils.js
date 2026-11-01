@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
+import { artworkImageSources, validateImageCatalog } from './artworkImages.js';
 import {
   BUBBLE_RADIUS,
   CENTRAL_ROTATION,
@@ -12,6 +13,7 @@ import {
   CSV_CREATORS_DELIMITER,
   CSV_ACERVOS_PATH,
   JSON_ARTWORKS_PATH,
+  JSON_ARTWORK_IMAGE_FALLBACKS_PATH,
   GEOJSON_COUNTRIES_PATH,
   CURRENT_YEAR,
 } from './constants.js';
@@ -204,7 +206,8 @@ async function loadAcervoBubbles() {
  * @param {Record<string, object>} dict — conteúdo bruto do JSON de obras
  * @returns {Map<string, object[]>}
  */
-export function parseArtworkDict(dict) {
+export function parseArtworkDict(dict, imageCatalog) {
+  if (imageCatalog !== undefined) validateImageCatalog(imageCatalog);
   /** @type {Map<string, object[]>} */
   const byCreator = new Map();
   for (const [wikidataId, entry] of Object.entries(dict)) {
@@ -218,15 +221,15 @@ export function parseArtworkDict(dict) {
     }
     if (creators.length === 0) continue;
 
+    const imageSources = artworkImageSources(wikidataId, entry.image?.image, imageCatalog);
     const artwork = {
       id: wikidataId,
       creators,
       museum: ACERVO_ALIASES[entry.museum ?? ''] ?? entry.museum ?? '',
       title: entry.title ?? '',
       year: typeof entry.year === 'number' && entry.year <= CURRENT_YEAR ? entry.year : null,
-      image: typeof entry.image?.image === 'string'
-        ? entry.image.image.trim().replace(/^http:\/\/commons\.wikimedia\.org\//, 'https://commons.wikimedia.org/')
-        : '',
+      image: imageSources[0] ?? '',
+      imageSources,
       url: entry.url ?? '',
     };
 
@@ -243,10 +246,14 @@ export function parseArtworkDict(dict) {
 }
 
 async function loadArtworksByCreator() {
-  const resp = await fetch(`${import.meta.env?.BASE_URL ?? '/'}${JSON_ARTWORKS_PATH}`);
-  if (!resp.ok) throw new Error(`Falha ao carregar JSON de obras: ${resp.status}`);
-  const dict = await resp.json();
-  return parseArtworkDict(dict);
+  const [dict, catalog] = await Promise.all(
+    [JSON_ARTWORKS_PATH, JSON_ARTWORK_IMAGE_FALLBACKS_PATH].map(async path => {
+      const resp = await fetch(`${import.meta.env?.BASE_URL ?? '/'}${path}`);
+      if (!resp.ok) throw new Error(`Falha ao carregar JSON de obras (${path}): ${resp.status}`);
+      return resp.json();
+    }),
+  );
+  return parseArtworkDict(dict, catalog);
 }
 
 /**
