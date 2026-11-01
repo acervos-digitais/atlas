@@ -66,6 +66,9 @@
   --about-meta-size: var(--font-size-xs);
   --tutorial-bg: var(--bg-c);
   --tutorial-txt: var(--txt);
+  --profile-first-section-padding: 32px;
+  --profile-donut-pct: var(--txt);
+  --profile-bar-pct: var(--neutral-20);
 
   /* Cor neutra das pills de acervo/museu e da bolinha neutra — adaptável ao tema.
      Escuro: pill clara (cinza-claro); Claro: pill escura (ver [data-theme=light]). */
@@ -139,6 +142,8 @@
    Os tokens brutos (--color-*, --neutral-*) permanecem os mesmos; apenas
    os aliases são remapeados. */
 [data-theme="light"] {
+  --profile-donut-pct: var(--neutral-90);
+  --profile-bar-pct: var(--neutral-90);
   --tutorial-bg: var(--neutral-80);
   --tutorial-txt: var(--neutral-10);
   --map-control-idle: var(--color-black);
