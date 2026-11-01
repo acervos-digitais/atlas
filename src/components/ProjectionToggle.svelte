@@ -20,6 +20,7 @@
     type="button"
     class="map-btn"
     class:map-btn--active={projectionType === '3d'}
+    aria-pressed={projectionType === '3d'}
     on:click={() => select('3d')}
     title={PROJECTION_LABELS[locale].globe3d}
     aria-label={PROJECTION_LABELS[locale].globe3d}
@@ -36,6 +37,7 @@
     type="button"
     class="map-btn"
     class:map-btn--active={projectionType === '2d'}
+    aria-pressed={projectionType === '2d'}
     on:click={() => select('2d')}
     title={PROJECTION_LABELS[locale].map2d}
     aria-label={PROJECTION_LABELS[locale].map2d}
@@ -53,28 +55,33 @@
   .projection-toggle {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--map-control-gap);
     pointer-events: none; /* container passthrough — apenas botões capturam */
   }
 
   .map-btn {
-    width: 44px;
-    height: 44px;
+    width: var(--map-control-size);
+    height: var(--map-control-size);
     display: flex;
     align-items: center;
     justify-content: center;
     background: transparent;
-    border: 2px solid var(--neutral-10);
+    border: 2px solid var(--map-control-idle);
     border-radius: 5.4px;
-    color: var(--neutral-10);
+    color: var(--map-control-idle);
     cursor: pointer;
     pointer-events: auto;
     transition: color 0.12s, border-color 0.12s, background-color 0.12s;
     backdrop-filter: blur(3.6px);
 
     &:hover {
-      color: var(--neutral-30);
-      border-color: var(--neutral-30);
+      color: var(--map-control-hover);
+      border-color: var(--map-control-hover);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--map-control-hover);
+      outline-offset: 2px;
     }
   }
 

@@ -35,13 +35,13 @@
   .zoom-buttons {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--map-control-gap);
     pointer-events: none; /* container passthrough — apenas botões capturam */
   }
 
   .zoom-btn {
-    width: 44px;
-    height: 44px;
+    width: var(--map-control-size);
+    height: var(--map-control-size);
     display: flex;
     align-items: center;
     justify-content: center;
