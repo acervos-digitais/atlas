@@ -65,6 +65,7 @@
   let resizeObserver;
   let countriesFeature = null;
   let countriesMesh = null;
+  let initialPaintRecorded = false;
 
   // Meridiano central ~-54°W — Brasil no centro do mundo (estilo IBGE, abr/2024).
   // CENTRAL_ROTATION importado de constants.js
@@ -428,6 +429,10 @@
       if (dynamicDirty) {
         dynamicDirty = false;
         redrawDynamic();
+      }
+      if (!initialPaintRecorded && bgCtx && ctx && projection && countriesFeature && bubbles.length > 0) {
+        initialPaintRecorded = true;
+        globalThis.performance?.mark('atlas:map-ready');
       }
     });
   }
