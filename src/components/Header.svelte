@@ -135,7 +135,7 @@
     align-items: flex-start;
     gap: 30px;
     flex: 1;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     min-width: 0;
   }
 
@@ -149,7 +149,7 @@
 
   .header-section--locality {
     flex: 0 1 345px;
-    min-width: 150px;
+    min-width: 200px;
     flex-shrink: 1;
     width: 100%;
   }

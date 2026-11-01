@@ -15,6 +15,37 @@
   import TutorialBox from './components/TutorialBox.svelte';
   import AboutModal from './components/AboutModal.svelte';
   import ThemeToggle from './components/ThemeToggle.svelte';
+
+  let measuredHeaderHeight = 0;
+  let measuredMenuHeight = 0;
+
+  function measureChrome(node, menus = false) {
+    const targets = menus ? [...node.querySelectorAll('.accordion-header')] : [node];
+    const update = () => {
+      const borderHeight = (element) => {
+        const style = getComputedStyle(element);
+        return parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+      };
+      const height = targets.reduce((sum, target) =>
+        sum + target.getBoundingClientRect().height + (menus ? borderHeight(target.parentElement) : 0), 0)
+        + (menus ? borderHeight(node) : 0);
+      if (menus) measuredMenuHeight = height;
+      else measuredHeaderHeight = height;
+      const root = document.documentElement;
+      root.style.setProperty('--mobile-header-height', `${measuredHeaderHeight}px`);
+      root.style.setProperty('--menu-height', `${measuredHeaderHeight + measuredMenuHeight}px`);
+    };
+    const observer = new ResizeObserver(update);
+    targets.forEach(target => observer.observe(target));
+    update();
+    return {
+      destroy() {
+        observer.disconnect();
+        if (menus) measuredMenuHeight = 0;
+        else measuredHeaderHeight = 0;
+      },
+    };
+  }
   import { loadData } from './lib/dataUtils.js';
   import { applyFilters, applyTrajectoryFilter, computeAvailableOptions } from './lib/filterModel.js';
 import {
@@ -428,9 +459,11 @@ import {
 
   <div class="main-area">
   {#if isMobile}
-    <MobileHeader {locale} onAboutOpen={handleAboutOpen} />
+    <div class="mobile-header-shell" use:measureChrome>
+      <MobileHeader {locale} onAboutOpen={handleAboutOpen} />
+    </div>
 
-    <div class="mobile-filters" class:mobile-filters--open={accordionOpen}>
+    <div class="mobile-filters" class:mobile-filters--open={accordionOpen} use:measureChrome={true}>
       <FilterAccordion items={ACCORDION_ITEMS} bind:expandedId={accordionExpandedId}>
         <div slot="level1" class="mobile-filters__panel">
           <SidebarFilters
@@ -475,7 +508,7 @@ import {
       </FilterAccordion>
     </div>
   {:else}
-    <header class="header">
+    <header class="header" use:measureChrome>
       <div class="header__controls">
         <Header
           {activeTypes}
@@ -605,8 +638,9 @@ import {
     display: flex;
     align-items: center;
     gap: 30px;
-    padding: 0 1.5rem 0 calc(1.5rem + 28px);
-    height: var(--menu-height);
+    padding: 16px 1.5rem 16px calc(1.5rem + 28px);
+    min-height: 98px;
+    box-sizing: border-box;
     background: var(--chrome-bg);
     color: var(--chrome-txt);
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
@@ -625,6 +659,10 @@ import {
   }
 
   /* ─── Filtros mobile (FilterAccordion sobre o mapa) ─────────────────── */
+  .mobile-header-shell {
+    flex-shrink: 0;
+  }
+
   .mobile-filters {
     flex-shrink: 0;
     position: relative;
@@ -636,7 +674,7 @@ import {
   /* Quando um nível está expandido, o accordion vira overlay e cobre o mapa. */
   .mobile-filters--open {
     position: absolute;
-    top: var(--menu-height);
+    top: var(--mobile-header-height);
     left: 0;
     right: 0;
     bottom: 0;

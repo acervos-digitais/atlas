@@ -97,9 +97,9 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    height: 52px;
+    min-height: var(--mobile-menu-min-height);
     flex-shrink: 0;
-    padding: 0 20px; /* MOBILE_PADDING_X */
+    padding: 12px 20px;
     cursor: pointer;
     background: var(--bg);
     transition: background 0.12s;
@@ -107,18 +107,18 @@
     &:hover {
       background: var(--bg-l);
     }
+    &:focus-visible { outline: 2px solid var(--txt); outline-offset: -2px; }
   }
 
   .accordion-header__label {
     font-family: var(--font-family-base);
-    font-size: var(--font-size-sm);
+    font-size: var(--mobile-menu-title-size);
     font-weight: var(--font-weight-bold);
     letter-spacing: 0.02em;
     text-transform: uppercase;
     color: var(--txt);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   /* ─── Botão circular de toggle (+ / −) ────────────────────────────────── */
