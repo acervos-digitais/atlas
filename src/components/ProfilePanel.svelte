@@ -242,7 +242,7 @@
   .profile-panel {
     position: absolute;
     top: 0;
-    right: 0;
+    right: var(--map-control-rail-width);
     width: 260px;
     background: var(--bg-c);
     backdrop-filter: blur(12px);
@@ -257,6 +257,7 @@
   }
 
   .profile-panel--collapsed {
+    right: 0;
     border-bottom-left-radius: 14px;
     border-bottom: 1px solid var(--bg-hl);
     border-left: 1px solid var(--bg-hl);
@@ -451,10 +452,14 @@
   /* ─── Responsividade: Tablet ──────────────────────────────────────────── */
   @media (max-width: 1024px) {
     .profile-panel {
-      width: 100%;
+      width: calc(100% - var(--map-control-rail-width));
       max-width: 100%;
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
+    }
+
+    .profile-panel--collapsed {
+      width: 100%;
     }
 
     .profile-panel__header {

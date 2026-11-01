@@ -21,10 +21,24 @@ import { formatAcervoLabel } from '../lib/dataUtils.js';
   export let selectedCreator = null;
 
   /**
-   * Estado do collapse — controlado (bindable). Pai pode `bind:collapsed`
-   * para calcular `bottomInset` do WorldMap e evitar oclusão do globo.
+   * Estado do collapse — controlado (bindable).
    */
   export let collapsed = false;
+  /** Altura real para reservar espaço no mapa, inclusive quando a faixa é limitada. */
+  export let renderedHeight = 0;
+
+  function measureHeight(node) {
+    const update = () => { renderedHeight = node.getBoundingClientRect().height; };
+    const resizeObserver = new ResizeObserver(update);
+    resizeObserver.observe(node);
+    update();
+    return {
+      destroy() {
+        resizeObserver.disconnect();
+        renderedHeight = 0;
+      },
+    };
+  }
 
   /** Quando true, renderiza como overlay flutuante de largura variável (mobile). */
   export let mobile = false;
@@ -164,6 +178,7 @@ import { formatAcervoLabel } from '../lib/dataUtils.js';
 {#if artworks.length > 0}
   <section
     class="artwork-strip"
+    use:measureHeight
     class:artwork-strip--collapsed={collapsed}
     class:artwork-strip--mobile={mobile}
     aria-label="Obras dos artistas selecionados"
@@ -258,7 +273,7 @@ import { formatAcervoLabel } from '../lib/dataUtils.js';
     pointer-events: auto;
     /* height: ARTWORK_STRIP_HEIGHT_EXPANDED (248px) */
     height: auto;
-    max-height: 248px;
+    max-height: min(248px, max(36px, calc(100% - var(--map-controls-min-visible-height))));
     display: flex;
     flex-direction: column;
     overflow: hidden;

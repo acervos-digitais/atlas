@@ -186,12 +186,12 @@ import {
   /** Estado collapse do ArtworkStrip — controla `bottomInset` do WorldMap.
    * Inicializado do localStorage para persistir entre reloads. */
   let artworkStripCollapsed = readCollapsed();
+  let artworkStripHeight = 0;
   $: saveCollapsed(artworkStripCollapsed);
-  /** Altura ocupada pela faixa, sensível ao breakpoint (mobile usa overlay menor).
-   * Quando não há obras, a faixa não renderiza e o inset é 0. */
+  /** Reserva a altura medida da faixa; usa dimensões do breakpoint antes da montagem. */
   $: stripCollapsedH = isMobile ? ARTWORK_STRIP_HEIGHT_MOBILE_COLLAPSED : ARTWORK_STRIP_HEIGHT_COLLAPSED;
   $: stripExpandedH = isMobile ? ARTWORK_STRIP_HEIGHT_MOBILE_EXPANDED : ARTWORK_STRIP_HEIGHT_EXPANDED;
-  $: artworkStripInset = artworksForStrip.length === 0 ? 0 : (artworkStripCollapsed ? stripCollapsedH : stripExpandedH);
+  $: artworkStripInset = artworksForStrip.length === 0 ? 0 : (artworkStripHeight || (artworkStripCollapsed ? stripCollapsedH : stripExpandedH));
 
   onMount(async () => {
     try {
@@ -604,6 +604,7 @@ import {
           mobile={isMobile}
           {locale}
           bind:collapsed={artworkStripCollapsed}
+          bind:renderedHeight={artworkStripHeight}
           onArtistSelect={handleArtistSelect}
         />
       {/if}
