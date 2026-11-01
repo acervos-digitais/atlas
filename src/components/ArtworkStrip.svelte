@@ -7,6 +7,7 @@ import {
   ARTWORK_STRIP_DEFAULT_MESSAGE,
 } from '../lib/constants.js';
 import { formatAcervoLabel } from '../lib/dataUtils.js';
+import { availableArtworkImage, imageSourceKey, recordImageFailure } from '../lib/artworkImages.js';
 
   /** Locale ativo: 'pt' | 'en'. */
   export let locale = 'pt';
@@ -112,13 +113,13 @@ import { formatAcervoLabel } from '../lib/dataUtils.js';
   let failedImages = new Map();
   $: imageUnavailable = ARTWORK_STRIP_DEFAULT_MESSAGE[locale].imageUnavailable;
   $: if (artworks) {
-    const sources = new Map(artworks.map(art => [art.id, art.image]));
-    failedImages = new Map([...failedImages].filter(([id, src]) => sources.get(id) === src));
+    const sources = new Map(artworks.map(art => [art.id, imageSourceKey(art)]));
+    failedImages = new Map([...failedImages].filter(([id, failure]) => sources.get(id) === failure.key));
     onArtworkPointerLeave();
   }
 
-  function imageFailed(art) {
-    failedImages = new Map(failedImages).set(art.id, art.image);
+  function imageFailed(art, source) {
+    failedImages = new Map(failedImages).set(art.id, recordImageFailure(art, source, failedImages.get(art.id)));
   }
 
   onDestroy(() => {
@@ -209,26 +210,27 @@ import { formatAcervoLabel } from '../lib/dataUtils.js';
       >
         <ul class="artwork-strip__grid">
           {#each artworks as art (art.id)}
+            {@const imageSource = availableArtworkImage(art, failedImages.get(art.id))}
             <li class="artwork">
               <button
                 type="button"
                 class="artwork__btn"
-                aria-label={[art.title, ...(art.creators ?? []), art.museum, showYear(art.year) ? art.year : null, !art.image || failedImages.get(art.id) === art.image ? imageUnavailable : null].filter(Boolean).join(' — ')}
+                aria-label={[art.title, ...(art.creators ?? []), art.museum, showYear(art.year) ? art.year : null, !imageSource ? imageUnavailable : null].filter(Boolean).join(' — ')}
                 on:click={() => selectArtwork(art)}
                 on:pointerenter={(e) => onArtworkPointerEnter(e, art)}
                 on:pointermove={onArtworkPointerMove}
                 on:pointerleave={onArtworkPointerLeave}
               >
-                {#if art.image && failedImages.get(art.id) !== art.image}
-                  {#key art.image}
+                {#if imageSource}
+                  {#key imageSource}
                     <img
                       class="artwork__img"
-                      use:lazyImg={{ src: art.image, deferred: useObserver }}
+                      use:lazyImg={{ src: imageSource, deferred: useObserver }}
                       alt={art.title || 'Obra'}
                       loading="lazy"
                       draggable="false"
                       on:load={(event) => event.currentTarget.classList.add('artwork__img--loaded')}
-                      on:error={() => imageFailed(art)}
+                      on:error={() => imageFailed(art, imageSource)}
                     />
                   {/key}
                 {:else}
