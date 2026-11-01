@@ -60,6 +60,10 @@ describe('action de imagens nativa e observer', () => {
     const node = imageNode();
     const action = imageAction(undefined)(node, { src: 'a.jpg', deferred: true });
     expect(node.src).toBe('a.jpg');
+    node.classList.remove.mockClear();
+    action.update({ src: 'a.jpg', deferred: true });
+    expect(node.src).toBe('a.jpg');
+    expect(node.classList.remove).not.toHaveBeenCalled();
     action.update({ src: '', deferred: false });
     expect(node.src).toBeUndefined();
     action.update({ src: 'b.jpg', deferred: false });
@@ -87,6 +91,10 @@ describe('action de imagens nativa e observer', () => {
     expect(a.src).toBeUndefined();
     expect(b.src).toBe('b.jpg');
     expect(b.classList.add).not.toHaveBeenCalled();
+    observe.mockClear();
+    actionB.update({ src: 'b.jpg', deferred: true });
+    expect(b.src).toBe('b.jpg');
+    expect(observe).not.toHaveBeenCalled();
     actionA.update({ src: 'updated.jpg', deferred: true });
     callback([{ target: a, isIntersecting: true }]);
     expect(a.src).toBe('updated.jpg');
