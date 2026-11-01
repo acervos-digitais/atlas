@@ -51,6 +51,10 @@
   --disclaimer: var(--color-white);
   --bg-warning: var(--color-white);
   --txt-warning: var(--color-black);
+  --map-control-size: 44px;
+  --map-control-gap: 16px;
+  --map-control-idle: var(--neutral-10);
+  --map-control-hover: var(--neutral-30);
 
   /* Cor neutra das pills de acervo/museu e da bolinha neutra — adaptável ao tema.
      Escuro: pill clara (cinza-claro); Claro: pill escura (ver [data-theme=light]). */
@@ -124,6 +128,8 @@
    Os tokens brutos (--color-*, --neutral-*) permanecem os mesmos; apenas
    os aliases são remapeados. */
 [data-theme="light"] {
+  --map-control-idle: var(--color-black);
+  --map-control-hover: var(--neutral-80);
   --bg:    var(--color-white);      /* fundo principal (#ffffff) */
   --bg-side:    var(--neutral-10);      /* fundo principal (#ffffff) */
   --bg-l:  var(--neutral-10);       /* superfície elevada (#e8e8e8) */

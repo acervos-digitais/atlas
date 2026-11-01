@@ -52,21 +52,21 @@
   .theme-toggle {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--map-control-gap);
     pointer-events: none;
   }
 
   .map-btn {
-    width: 44px;
-    height: 44px;
+    width: var(--map-control-size);
+    height: var(--map-control-size);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 0;
     background: transparent;
-    border: 2px solid var(--neutral-10);
+    border: 2px solid var(--map-control-idle);
     border-radius: 5.28px;
-    color: var(--neutral-10);
+    color: var(--map-control-idle);
     cursor: pointer;
     pointer-events: auto;
     transition: color 0.16s ease, border-color 0.16s ease, background-color 0.16s ease, transform 0.16s ease;
@@ -81,13 +81,13 @@
     }
 
     &:hover {
-      border-color: var(--neutral-30);
-      color: var(--neutral-30);
+      border-color: var(--map-control-hover);
+      color: var(--map-control-hover);
       transform: translateY(-1px);
     }
 
     &:focus-visible {
-      outline: 2px solid var(--neutral-30);
+      outline: 2px solid var(--map-control-hover);
       outline-offset: 2px;
     }
   }
