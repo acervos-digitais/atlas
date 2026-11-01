@@ -198,7 +198,7 @@
         <!-- Barras: nascimento por região -->
         {#if stats.birthByRegion.length > 0}
           <section class="profile-panel__bars-section">
-            <h3 class="profile-panel__bars-title">{PROFILE_PANEL_LABELS[locale].birthLabel}</h3>
+            <h3 class="profile-panel__bars-title profile-panel__bars-title--birth">{PROFILE_PANEL_LABELS[locale].birthLabel}</h3>
             {#each stats.birthByRegion as row}
               <div class="profile-panel__bar-item">
                 <span class="profile-panel__bar-label">{row.label}</span>
@@ -345,6 +345,7 @@
     font-size: var(--font-size-xl);
     font-weight: var(--font-weight-bold);
     font-family: inherit;
+    fill: var(--profile-donut-pct);
   }
 
   .profile-panel__donut-label {
@@ -385,6 +386,10 @@
     padding-top: 44px;
   }
 
+  .profile-panel__bars-title--birth {
+    padding-top: var(--profile-first-section-padding);
+  }
+
   .profile-panel__bar-item {
     display: flex;
     flex-direction: column;
@@ -423,7 +428,7 @@
   .profile-panel__bar-pct {
     font-size: var(--font-size-xl);
     font-weight: var(--font-weight-bold);
-    color: var(--neutral-20);
+    color: var(--profile-bar-pct);
     white-space: nowrap;
     min-width: 30px;
     text-align: right;
@@ -500,6 +505,10 @@
 
     .profile-panel__bars-title {
       font-size: 12px;
+      padding-top: 12px;
+    }
+
+    .profile-panel__bars-title--birth {
       padding-top: 12px;
     }
 
