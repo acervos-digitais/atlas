@@ -44,6 +44,9 @@
 
 <style lang="scss">
   .acervo-filter {
+    --pill-bg: var(--acervo-pill-bg);
+    --pill-bgh: var(--acervo-pill-hover);
+    --pill-txt: var(--acervo-pill-txt);
     display: flex;
     flex-direction: column;
 
