@@ -31,7 +31,7 @@
     padding: 14px;
     background: var(--bg-c);
     border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--results-shadow);
     backdrop-filter: blur(10px);
     overflow: hidden;
     font-family: var(--font-family-base);

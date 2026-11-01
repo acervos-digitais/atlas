@@ -69,6 +69,12 @@
   --profile-first-section-padding: 32px;
   --profile-donut-pct: var(--txt);
   --profile-bar-pct: var(--neutral-20);
+  --map-vignette-opacity: 1;
+  --map-edge-gradient-opacity: 0.5;
+  --results-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --acervo-pill-bg: var(--pill-bg);
+  --acervo-pill-hover: var(--pill-bgh);
+  --acervo-pill-txt: var(--pill-txt);
 
   /* Cor neutra das pills de acervo/museu e da bolinha neutra — adaptável ao tema.
      Escuro: pill clara (cinza-claro); Claro: pill escura (ver [data-theme=light]). */
@@ -142,6 +148,12 @@
    Os tokens brutos (--color-*, --neutral-*) permanecem os mesmos; apenas
    os aliases são remapeados. */
 [data-theme="light"] {
+  --map-vignette-opacity: 0.5;
+  --map-edge-gradient-opacity: 0.25;
+  --results-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  --acervo-pill-bg: var(--color-black);
+  --acervo-pill-hover: var(--neutral-90);
+  --acervo-pill-txt: var(--color-white);
   --profile-donut-pct: var(--neutral-90);
   --profile-bar-pct: var(--neutral-90);
   --tutorial-bg: var(--neutral-80);
