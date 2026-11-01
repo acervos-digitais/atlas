@@ -71,6 +71,31 @@ describe('action de imagens nativa e observer', () => {
     action.destroy();
   });
 
+  test('altura da faixa acompanha layout real e limpa o observer', () => {
+    const actionSource = source.slice(source.indexOf('  function measureHeight('), source.indexOf('  /** Quando true'));
+    let callback;
+    const observe = vi.fn();
+    const disconnect = vi.fn();
+    const Observer = function (cb) {
+      callback = cb;
+      this.observe = observe;
+      this.disconnect = disconnect;
+    };
+    const { measureHeight, height } = new Function('ResizeObserver',
+      `let renderedHeight = 0;\n${actionSource}\nreturn { measureHeight, height: () => renderedHeight };`)(Observer);
+    let actualHeight = 36;
+    const node = { getBoundingClientRect: () => ({ height: actualHeight }) };
+    const action = measureHeight(node);
+    expect(observe).toHaveBeenCalledWith(node);
+    expect(height()).toBe(36);
+    actualHeight = 160.5;
+    callback();
+    expect(height()).toBe(160.5);
+    action.destroy();
+    expect(disconnect).toHaveBeenCalledOnce();
+    expect(height()).toBe(0);
+  });
+
   test('interseção agenda cada imagem sem marcar sucesso e limpa inscrições', () => {
     let callback;
     const observe = vi.fn();
