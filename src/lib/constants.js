@@ -477,6 +477,14 @@ export const CENTRAL_ROTATION = [54, 0, 0];
 export const REF_W = 960;
 export const REF_H = 500;
 
+// ─── Contraste do mapa no tema claro ────────────────────────────────────────
+export const MAP_LAND_COLOR_LIGHT = '#383838';
+export const MAP_GLOW_STOPS_LIGHT = [
+  [0, 'rgba(255, 255, 255, 0.275)'],
+  [0.4, 'rgba(255, 255, 255, 0.09)'],
+  [1, 'rgba(255, 255, 255, 0)'],
+];
+
 // ─── Trajetórias: animação de fluxo ──────────────────────────────────────────
 
 /** Ativa/desativa animação de pontos fluindo nas trajetórias (pulso óptico). */
@@ -869,10 +877,12 @@ export const ARTWORK_STRIP_DEFAULT_MESSAGE = {
   pt: {
     empty: 'Conheça as obras dos artistas nos museus e arquivos selecionados',
     worksBy: 'Obras de',
+    imageUnavailable: 'Imagem indisponível',
   },
   en: {
     empty: 'Learn about the works of artists in the selected museums and archives',
     worksBy: 'Works by',
+    imageUnavailable: 'Image unavailable',
   },
 };
 

@@ -224,7 +224,9 @@ export function parseArtworkDict(dict) {
       museum: ACERVO_ALIASES[entry.museum ?? ''] ?? entry.museum ?? '',
       title: entry.title ?? '',
       year: typeof entry.year === 'number' && entry.year <= CURRENT_YEAR ? entry.year : null,
-      image: entry.image?.image ?? '',
+      image: typeof entry.image?.image === 'string'
+        ? entry.image.image.trim().replace(/^http:\/\/commons\.wikimedia\.org\//, 'https://commons.wikimedia.org/')
+        : '',
       url: entry.url ?? '',
     };
 
@@ -263,6 +265,7 @@ async function loadArtworksByCreator() {
  * @returns {Promise<{ bubbles: Array<object>, trajectories: Array<object>, artworksByCreator: Map, acervoBubbles: Array<object> }>}
  */
 export async function loadData(csvPath, locale = 'pt') {
+  globalThis.performance?.mark('atlas:load-start');
   const actualCsvPath = csvPath ?? CSV_CREATORS_PATH;
   const [rows, artworksByCreator, acervoBubbles, topo] = await Promise.all([
     d3.dsv(CSV_CREATORS_DELIMITER, actualCsvPath),
@@ -270,6 +273,7 @@ export async function loadData(csvPath, locale = 'pt') {
     loadAcervoBubbles(),
     d3.json(GEOJSON_COUNTRIES_PATH),
   ]);
+  globalThis.performance?.mark('atlas:sources-ready');
   const bubbles = [];
   /** @type {Map<number, { creator: string, birth?: object, educations?: object[], death?: object }>} */
   const byRow = new Map();
@@ -446,6 +450,7 @@ export async function loadData(csvPath, locale = 'pt') {
   //   );
   // }
 
+  globalThis.performance?.mark('atlas:data-ready');
   return { bubbles, trajectories, artworksByCreator, acervoBubbles };
 }
 

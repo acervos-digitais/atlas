@@ -196,6 +196,7 @@
     transform: translate(-50%, -50%);
     z-index: 101;
     width: min(560px, calc(100vw - 32px));
+    box-sizing: border-box;
     max-height: calc(100vh - 64px);
     overflow-y: auto;
     background: var(--color-black);
@@ -205,9 +206,10 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
+    overflow-wrap: anywhere;
 
     @media (max-width: 760px) {
-      padding: 24px 20px;
+      padding: calc(var(--close-target-size) + 24px) 20px 24px;
       border-radius: 12px;
     }
   }
@@ -219,16 +221,23 @@
     background: none;
     border: none;
     color: var(--neutral-10);
-    font-size: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--close-target-size);
+    height: var(--close-target-size);
+    box-sizing: border-box;
+    font-size: var(--close-symbol-size);
     line-height: 1;
     cursor: pointer;
-    padding: 4px 8px;
+    padding: 0;
     border-radius: 4px;
     transition: color 0.12s;
 
     &:hover {
       color: var(--neutral-10);
     }
+    &:focus-visible { outline: 2px solid currentColor; }
   }
 
   .about-modal__title {
@@ -238,11 +247,12 @@
     text-transform: uppercase;
     color: var(--txt);
     margin: 0;
+    padding-right: var(--close-target-size);
   }
 
   .about-modal__body {
-    font-size: 11px;
-    line-height: 1.7;
+    font-size: var(--about-body-size);
+    line-height: 1.4;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     color: var(--neutral-10);
@@ -265,26 +275,28 @@
     gap: 4px;
     border-top: 1px solid var(--neutral-60);
     padding-top: 16px;
+    font-size: var(--about-meta-size);
+    line-height: 1.4;
   }
 
   .about-modal__credits-row {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
     gap: 12px;
     align-items: baseline;
   }
 
   dt {
-    font-size: 9px;
+    font-size: inherit;
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--neutral-10);
-    white-space: nowrap;
+    white-space: normal;
   }
 
   dd {
-    font-size: 9px;
+    font-size: inherit;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--neutral-10);
@@ -295,6 +307,7 @@
   .about-modal__logo-group {
     padding-top: 24px;
     display: flex;
+    flex-wrap: wrap;
     gap: 16px;
   }
 

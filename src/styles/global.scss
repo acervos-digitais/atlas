@@ -51,6 +51,30 @@
   --disclaimer: var(--color-white);
   --bg-warning: var(--color-white);
   --txt-warning: var(--color-black);
+  --map-control-size: 44px;
+  --map-control-gap: 16px;
+  --map-control-idle: var(--neutral-10);
+  --map-control-hover: var(--neutral-30);
+  --close-symbol-size: 24px;
+  --close-target-size: 44px;
+  --mobile-title-size: var(--font-size-2xl);
+  --mobile-action-size: var(--font-size-md);
+  --mobile-menu-title-size: var(--font-size-xl);
+  --mobile-logo-height: 50px;
+  --mobile-menu-min-height: 60px;
+  --about-body-size: var(--font-size-lg);
+  --about-meta-size: var(--font-size-xs);
+  --tutorial-bg: var(--bg-c);
+  --tutorial-txt: var(--txt);
+  --profile-first-section-padding: 32px;
+  --profile-donut-pct: var(--txt);
+  --profile-bar-pct: var(--neutral-20);
+  --map-vignette-opacity: 1;
+  --map-edge-gradient-opacity: 0.5;
+  --results-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --acervo-pill-bg: var(--pill-bg);
+  --acervo-pill-hover: var(--pill-bgh);
+  --acervo-pill-txt: var(--pill-txt);
 
   /* Cor neutra das pills de acervo/museu e da bolinha neutra — adaptável ao tema.
      Escuro: pill clara (cinza-claro); Claro: pill escura (ver [data-theme=light]). */
@@ -124,6 +148,18 @@
    Os tokens brutos (--color-*, --neutral-*) permanecem os mesmos; apenas
    os aliases são remapeados. */
 [data-theme="light"] {
+  --map-vignette-opacity: 0.5;
+  --map-edge-gradient-opacity: 0.25;
+  --results-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  --acervo-pill-bg: var(--color-black);
+  --acervo-pill-hover: var(--neutral-90);
+  --acervo-pill-txt: var(--color-white);
+  --profile-donut-pct: var(--neutral-90);
+  --profile-bar-pct: var(--neutral-90);
+  --tutorial-bg: var(--neutral-80);
+  --tutorial-txt: var(--neutral-10);
+  --map-control-idle: var(--color-black);
+  --map-control-hover: var(--neutral-80);
   --bg:    var(--color-white);      /* fundo principal (#ffffff) */
   --bg-side:    var(--neutral-10);      /* fundo principal (#ffffff) */
   --bg-l:  var(--neutral-10);       /* superfície elevada (#e8e8e8) */

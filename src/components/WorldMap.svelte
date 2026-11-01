@@ -19,6 +19,8 @@
   PROJECTION_MORPH_DURATION,
   PROJECTION_3D_SCALE_FACTOR,
   PROJECTION_2D_BASE_SCALE,
+  MAP_LAND_COLOR_LIGHT,
+  MAP_GLOW_STOPS_LIGHT,
 } from '../lib/constants.js';
 
   export let bubbles = [];
@@ -63,6 +65,7 @@
   let resizeObserver;
   let countriesFeature = null;
   let countriesMesh = null;
+  let initialPaintRecorded = false;
 
   // Meridiano central ~-54°W — Brasil no centro do mundo (estilo IBGE, abr/2024).
   // CENTRAL_ROTATION importado de constants.js
@@ -427,6 +430,10 @@
         dynamicDirty = false;
         redrawDynamic();
       }
+      if (!initialPaintRecorded && bgCtx && ctx && projection && countriesFeature && bubbles.length > 0) {
+        initialPaintRecorded = true;
+        globalThis.performance?.mark('atlas:map-ready');
+      }
     });
   }
 
@@ -721,9 +728,9 @@
       );
       if (isLight) {
         /* Brilho sutil (clareia levemente ao redor da esfera) — evita halo cinza. */
-        glow.addColorStop(0,   'rgba(255, 255, 255, 0.55)');
-        glow.addColorStop(0.4, 'rgba(255, 255, 255, 0.18)');
-        glow.addColorStop(1,   'rgba(255, 255, 255, 0)');
+        for (const [offset, color] of MAP_GLOW_STOPS_LIGHT) {
+          glow.addColorStop(offset, color);
+        }
       } else {
         glow.addColorStop(0,   'rgba(94, 94, 94, 1)');
         glow.addColorStop(0.3, 'rgba(94, 94, 94, 0.3)');
@@ -758,7 +765,7 @@
       geoPath(countriesFeature);
       if (isLight) {
         /* Continentes escuros (carvão) sobre esfera/fundo claro — alto contraste. */
-        bgCtx.fillStyle = isGlobe ? '#4b4b4b' : 'rgba(75, 75, 75, 1)';
+        bgCtx.fillStyle = MAP_LAND_COLOR_LIGHT;
       } else {
         bgCtx.fillStyle = isGlobe ? '#404040' : 'rgba(125, 125, 125, 1)';
       }
@@ -1331,6 +1338,7 @@
   /* Vignette radial: cantos escuros, centro aberto */
   .map-vignette {
     inset: 0;
+    opacity: var(--map-vignette-opacity);
     background: radial-gradient(
       ellipse 70% 60% at 60% 50%,
       transparent 30%,
@@ -1345,7 +1353,7 @@
     right: 0;
     height: 80px;
     background: linear-gradient(to bottom, var(--bg-vignette-top) 0%, transparent 100%);
-    opacity: 0.5;
+    opacity: var(--map-edge-gradient-opacity);
   }
 
   /* Gradiente lateral esquerdo — suaviza transição com a sidebar */
@@ -1355,6 +1363,6 @@
     bottom: 0;
     width: 200px;
     background: linear-gradient(to right, var(--bg-vignette-left) 0%, transparent 100%);
-    opacity: 0.5;
+    opacity: var(--map-edge-gradient-opacity);
   }
 </style>

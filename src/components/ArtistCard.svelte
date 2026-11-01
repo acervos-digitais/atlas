@@ -215,6 +215,8 @@
 
   .artist-card__name {
     margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
     font-size: var(--font-size-2xl);
     font-weight: var(--font-weight-bold);
     letter-spacing: var(--letter-spacing-tight);
@@ -223,14 +225,20 @@
 
   .artist-card__close {
     all: unset;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--close-target-size);
+    height: var(--close-target-size);
     color: var(--txt-hl);
-    font-size: var(--font-size-2xl);
+    font-size: var(--close-symbol-size);
     line-height: var(--line-height-none);
     cursor: pointer;
     flex-shrink: 0;
     margin-top: 1px;
 
     &:hover { color: var(--txt); }
+    &:focus-visible { outline: 2px solid currentColor; }
   }
 
   .artist-card__body {
