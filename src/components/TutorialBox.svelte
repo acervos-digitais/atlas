@@ -27,12 +27,13 @@
   .tutorial-box {
     pointer-events: auto;
     position: relative;
-    background: rgba(18, 18, 18, 0.5);
+    background: var(--tutorial-bg);
     backdrop-filter: blur(30px);
     -webkit-backdrop-filter: blur(30px);
     border: 1px solid var(--neutral-70);
     border-radius: 16px;
     padding: 16px 24px;
+    padding-right: calc(var(--close-target-size) + 24px);
     width: 246px;
     display: flex;
     flex-direction: column;
@@ -44,10 +45,10 @@
     font-weight: var(--font-weight-bold);
     line-height: var(--line-height-normal);
     letter-spacing: var(--letter-spacing-tight);
-    color: var(--neutral-20);
+    color: var(--tutorial-txt);
     text-transform: uppercase;
     margin: 0;
-    padding-right: 18px; /* espaço para o botão × */
+    overflow-wrap: anywhere;
   }
 
   .tutorial-box__close {
@@ -55,15 +56,21 @@
     position: absolute;
     top: 12px;
     right: 14px;
-    font-size: var(--font-size-md);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--close-target-size);
+    height: var(--close-target-size);
+    font-size: var(--close-symbol-size);
     line-height: var(--line-height-none);
-    color: rgba(255, 255, 255, 0.56);
+    color: var(--tutorial-txt);
     cursor: pointer;
     transition: color 0.12s;
 
     &:hover {
-      color: var(--neutral-20);
+      color: var(--tutorial-txt);
     }
+    &:focus-visible { outline: 2px solid currentColor; }
   }
 
   .tutorial-box__body {
@@ -71,7 +78,8 @@
     font-weight: var(--font-weight-medium);
     line-height: var(--line-height-normal);
     letter-spacing: var(--letter-spacing-tight);
-    color: var(--neutral-20);
+    color: var(--tutorial-txt);
+    overflow-wrap: anywhere;
 
     :global(p) {
       margin: 0;
