@@ -56,15 +56,16 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    height: var(--menu-height); /* 90px em mobile */
-    padding: 0 20px; /* MOBILE_PADDING_X */
+    min-height: 90px;
+    box-sizing: border-box;
+    padding: 12px 20px;
     background: var(--chrome-bg);
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     flex-shrink: 0;
   }
 
   .mobile-header__logo {
-    height: 40px;
+    height: var(--mobile-logo-height);
     width: auto;
     display: block;
     flex-shrink: 0;
@@ -79,15 +80,13 @@
   }
 
   .mobile-header__title {
-    font-size: var(--font-size-sm);
+    font-size: var(--mobile-title-size);
     font-weight: var(--font-weight-bold);
     line-height: var(--line-height-snug);
     letter-spacing: var(--letter-spacing-tight);
     color: var(--chrome-txt);
     white-space: normal;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 180px;
+    overflow-wrap: anywhere;
   }
 
   .mobile-header__actions {
@@ -100,7 +99,7 @@
 
   .mobile-header__action-btn {
     all: unset;
-    font-size: var(--font-size-sm);
+    font-size: var(--mobile-action-size);
     font-weight: var(--font-weight-medium);
     line-height: var(--line-height-normal);
     letter-spacing: var(--letter-spacing-tight);
@@ -109,6 +108,7 @@
     white-space: nowrap;
 
     &:hover { color: var(--chrome-txt); }
+    &:focus-visible { outline: 2px solid currentColor; }
   }
 
   .mobile-header__lang {
@@ -118,13 +118,14 @@
 
   .mobile-header__lang-btn {
     all: unset;
-    font-size: var(--font-size-sm);
+    font-size: var(--mobile-action-size);
     font-weight: var(--font-weight-medium);
     letter-spacing: var(--letter-spacing-tight);
     color: var(--chrome-txt-l);
     cursor: pointer;
 
     &:hover { color: var(--chrome-txt); }
+    &:focus-visible { outline: 2px solid currentColor; }
   }
 
   .mobile-header__lang-btn--active {
