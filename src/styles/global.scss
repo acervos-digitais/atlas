@@ -55,6 +55,17 @@
   --map-control-gap: 16px;
   --map-control-idle: var(--neutral-10);
   --map-control-hover: var(--neutral-30);
+  --close-symbol-size: 24px;
+  --close-target-size: 44px;
+  --mobile-title-size: var(--font-size-2xl);
+  --mobile-action-size: var(--font-size-md);
+  --mobile-menu-title-size: var(--font-size-xl);
+  --mobile-logo-height: 50px;
+  --mobile-menu-min-height: 60px;
+  --about-body-size: var(--font-size-lg);
+  --about-meta-size: var(--font-size-xs);
+  --tutorial-bg: var(--bg-c);
+  --tutorial-txt: var(--txt);
 
   /* Cor neutra das pills de acervo/museu e da bolinha neutra — adaptável ao tema.
      Escuro: pill clara (cinza-claro); Claro: pill escura (ver [data-theme=light]). */
@@ -128,6 +139,8 @@
    Os tokens brutos (--color-*, --neutral-*) permanecem os mesmos; apenas
    os aliases são remapeados. */
 [data-theme="light"] {
+  --tutorial-bg: var(--neutral-80);
+  --tutorial-txt: var(--neutral-10);
   --map-control-idle: var(--color-black);
   --map-control-hover: var(--neutral-80);
   --bg:    var(--color-white);      /* fundo principal (#ffffff) */
