@@ -95,32 +95,16 @@ import { formatAcervoLabel } from '../lib/dataUtils.js';
   $: useObserver = artworks.length > 50;
 
   let observer = null;
+  let failedImages = new Map();
+  $: imageUnavailable = ARTWORK_STRIP_DEFAULT_MESSAGE[locale].imageUnavailable;
+  $: if (artworks) {
+    const sources = new Map(artworks.map(art => [art.id, art.image]));
+    failedImages = new Map([...failedImages].filter(([id, src]) => sources.get(id) === src));
+    onArtworkPointerLeave();
+  }
 
-  /** Inicializa ou destrói o observer conforme `useObserver`. */
-  $: {
-    if (useObserver) {
-      if (!observer) {
-        observer = new IntersectionObserver((entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              const img = entry.target;
-              const lazy = img.dataset.lazySrc;
-              if (lazy) {
-                img.src = lazy;
-                img.removeAttribute('data-lazy-src');
-                img.classList.add('artwork__img--loaded');
-                observer.unobserve(img);
-              }
-            }
-          });
-        }, { rootMargin: '80px' });
-      }
-    } else {
-      if (observer) {
-        observer.disconnect();
-        observer = null;
-      }
-    }
+  function imageFailed(art) {
+    failedImages = new Map(failedImages).set(art.id, art.image);
   }
 
   onDestroy(() => {
@@ -129,20 +113,44 @@ import { formatAcervoLabel } from '../lib/dataUtils.js';
   });
 
   /**
-   * Action do Svelte: conecta um <img> ao observer quando useObserver=true.
-   * Substitui o src real por data-lazy-src e coloca placeholder.
+   * O observer agenda a requisição; só o evento load confirma seu sucesso.
+   * Sem suporte a IntersectionObserver, usa o carregamento nativo.
    */
-  function lazyImg(node, src) {
-    if (!useObserver || !src) return {};
-    node.dataset.lazySrc = src;
-    node.src = '';
-    if (observer) observer.observe(node);
+  function lazyImg(node, { src, deferred }) {
+    const schedule = (source, defer) => {
+      observer?.unobserve(node);
+      node.removeAttribute('src');
+      node.removeAttribute('data-lazy-src');
+      node.classList.remove('artwork__img--loaded');
+      if (!source) return;
+      if (!defer || typeof IntersectionObserver === 'undefined') {
+        node.src = source;
+        return;
+      }
+      if (!observer) {
+        observer = new IntersectionObserver(entries => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            const img = entry.target;
+            const lazy = img.dataset.lazySrc;
+            observer.unobserve(img);
+            if (lazy) {
+              img.removeAttribute('data-lazy-src');
+              img.src = lazy;
+            }
+          }
+        }, { root: scrollEl, rootMargin: '80px' });
+      }
+      node.dataset.lazySrc = source;
+      observer.observe(node);
+    };
+    schedule(src, deferred);
     return {
       destroy() {
-        if (observer) observer.unobserve(node);
+        observer?.unobserve(node);
       },
-      update(newSrc) {
-        node.dataset.lazySrc = newSrc;
+      update({ src: newSrc, deferred: newDeferred }) {
+        schedule(newSrc, newDeferred);
       },
     };
   }
@@ -172,7 +180,7 @@ import { formatAcervoLabel } from '../lib/dataUtils.js';
     </button>
 
     <!-- Wrapper animado: sempre no DOM, altura 0 quando colapsado -->
-    <div class="artwork-strip__body" class:artwork-strip__body--collapsed={collapsed}>
+    <div class="artwork-strip__body" class:artwork-strip__body--collapsed={collapsed} inert={collapsed}>
       <div
         class="artwork-strip__scroll"
         class:artwork-strip__scroll--at-bottom={atBottom}
@@ -185,30 +193,26 @@ import { formatAcervoLabel } from '../lib/dataUtils.js';
               <button
                 type="button"
                 class="artwork__btn"
+                aria-label={[art.title, ...(art.creators ?? []), art.museum, showYear(art.year) ? art.year : null, !art.image || failedImages.get(art.id) === art.image ? imageUnavailable : null].filter(Boolean).join(' — ')}
                 on:click={() => selectArtwork(art)}
                 on:pointerenter={(e) => onArtworkPointerEnter(e, art)}
                 on:pointermove={onArtworkPointerMove}
                 on:pointerleave={onArtworkPointerLeave}
               >
-                {#if art.image}
-                  {#if useObserver}
+                {#if art.image && failedImages.get(art.id) !== art.image}
+                  {#key art.image}
                     <img
                       class="artwork__img"
-                      use:lazyImg={art.image}
-                      alt={art.title || 'Obra'}
-                      draggable="false"
-                    />
-                  {:else}
-                    <img
-                      class="artwork__img"
-                      src={art.image}
+                      use:lazyImg={{ src: art.image, deferred: useObserver }}
                       alt={art.title || 'Obra'}
                       loading="lazy"
                       draggable="false"
+                      on:load={(event) => event.currentTarget.classList.add('artwork__img--loaded')}
+                      on:error={() => imageFailed(art)}
                     />
-                  {/if}
+                  {/key}
                 {:else}
-                  <div class="artwork__img artwork__img--placeholder">—</div>
+                  <div class="artwork__img artwork__img--placeholder" class:artwork__img--compact={mobile}>{imageUnavailable}</div>
                 {/if}
               </button>
             </li>
@@ -293,7 +297,7 @@ import { formatAcervoLabel } from '../lib/dataUtils.js';
   .artwork-strip--mobile .artwork-strip__grid {
     grid-template-columns: none;
     grid-auto-flow: column;
-    grid-auto-columns: 34px;
+    grid-auto-columns: 80px;
     padding: 4px 12px 6px;
   }
 
@@ -402,6 +406,11 @@ import { formatAcervoLabel } from '../lib/dataUtils.js';
     aspect-ratio: 1 / 1;
   }
 
+  .artwork-strip--mobile .artwork {
+    aspect-ratio: auto;
+    height: 24px;
+  }
+
   .artwork__btn {
     all: unset;
     display: block;
@@ -446,6 +455,14 @@ import { formatAcervoLabel } from '../lib/dataUtils.js';
     justify-content: center;
     color: var(--txt-l);
     font-size: var(--font-size-xs);
+    line-height: 1.1;
+    text-align: center;
+    overflow-wrap: anywhere;
+    box-sizing: border-box;
+  }
+
+  .artwork__img--compact {
+    font-size: var(--font-size-2xs);
   }
 
   /* ── Tooltip rico das obras ─────────────────────────────────────────── */
@@ -488,4 +505,3 @@ import { formatAcervoLabel } from '../lib/dataUtils.js';
     color: var(--txt-hl);
   }
 </style>
-

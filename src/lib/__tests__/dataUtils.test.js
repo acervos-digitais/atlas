@@ -1,5 +1,22 @@
 import { continentForIsoId, sortArtworks, normalizeConfidence, formatAcervoLabel, parseArtworkDict } from '../dataUtils.js';
 
+describe('imagens das obras', () => {
+  test('normaliza Commons para HTTPS sem alterar identidade, acesso ou contagem', () => {
+    const byCreator = parseArtworkDict({
+      a: { creator: 'Artista', title: 'Título', year: 2000, image: { image: ' http://commons.wikimedia.org/wiki/Special:FilePath/Obra.jpg ' }, url: 'https://example.org/a' },
+      b: { creator: 'Artista', image: { image: null } },
+      c: { creator: 'Artista', image: { image: 42 } },
+    });
+    const works = byCreator.get('Artista');
+    expect(works).toHaveLength(3);
+    expect(works.find(work => work.id === 'a')).toMatchObject({
+      title: 'Título', year: 2000, url: 'https://example.org/a',
+      image: 'https://commons.wikimedia.org/wiki/Special:FilePath/Obra.jpg',
+    });
+    expect(works.filter(work => !work.image)).toHaveLength(2);
+  });
+});
+
 describe('continentForIsoId', () => {
   test('mapeia código ISO existente para o continente correto (Brasil → América do Sul)', () => {
     expect(continentForIsoId('76')).toBe('América do Sul');
