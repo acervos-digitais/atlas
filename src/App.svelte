@@ -801,16 +801,22 @@ import {
     left: 16px;
   }
 
-  /* Mobile: centraliza na área visível do mapa */
+  /* Mobile: centraliza na janela, acima das demais camadas da interface. */
   @media (max-width: 759px) {
     .tutorial-overlay--center {
+      position: fixed;
+      z-index: 201;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
     }
 
     .tutorial-overlay--center :global(.tutorial-box) {
+      box-sizing: border-box;
       width: 286px;
+      max-width: calc(100dvw - 32px);
+      max-height: calc(100dvh - 32px);
+      overflow-y: auto;
       padding: 16px 20px;
     }
   }
@@ -818,7 +824,7 @@ import {
   /* Ilustrações (mouse/gestos) dentro da caixa de tutorial */
   .tutorial-illo {
     display: block;
-    margin: 2px auto;
+    margin: var(--map-control-gap) auto;
     max-width: 100%;
     height: auto;
   }
