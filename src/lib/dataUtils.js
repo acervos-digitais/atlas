@@ -9,6 +9,7 @@ import {
   ISO_CONTINENT,
   ISO_CONTINENT_EN,
   UNDATED_YEAR,
+  ARTWORK_DEPRIORITIZED_ACERVOS,
   CSV_CREATORS_PATH,
   CSV_CREATORS_DELIMITER,
   CSV_ACERVOS_PATH,
@@ -122,21 +123,27 @@ export function continentForIsoId(isoId, locale = 'pt') {
 }
 
 /**
- * Ordena obras por `year` descendente. Obras com `year === UNDATED_YEAR`, `null`,
- * `undefined` ou não-numérico vão para o final, na ordem original entre si.
+ * Coloca acervos despriorizados no fim, ordenando cada grupo por ano.
+ * Por padrão, anos decrescem e obras sem data ficam no fim; `ascending` inverte
+ * apenas a ordem temporal, mantendo empates na ordem original.
  *
  * @param {object[]} artworks
+ * @param {boolean} ascending
  * @returns {object[]} novo array ordenado (não muta o original)
  */
-export function sortArtworks(artworks) {
+export function sortArtworks(artworks, ascending = false) {
+  const deprioritized = new Set(ARTWORK_DEPRIORITIZED_ACERVOS);
   const isUndated = (y) => y === null || y === undefined || y === UNDATED_YEAR || typeof y !== 'number' || Number.isNaN(y);
   return [...artworks].sort((a, b) => {
+    const priority = Number(deprioritized.has(a.museum)) - Number(deprioritized.has(b.museum));
+    if (priority) return priority;
+    const direction = ascending ? -1 : 1;
     const au = isUndated(a.year);
     const bu = isUndated(b.year);
     if (au && bu) return 0;
-    if (au) return 1;
-    if (bu) return -1;
-    return b.year - a.year;
+    if (au) return direction;
+    if (bu) return -direction;
+    return (b.year - a.year) * direction;
   });
 }
 

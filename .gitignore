@@ -3,3 +3,5 @@ dist/
 refs/
 .DS_Store
 Thumbs.db
+*.doc
+*.docx
