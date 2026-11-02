@@ -14,7 +14,7 @@
     type="button"
     on:click={dismiss}
     aria-label="Fechar tutorial"
-  >×</button>
+  ><img class="tutorial-box__close-icon" src="./close-icon.png" alt="" /></button>
   {#if title}
     <p class="tutorial-box__title">{title}</p>
   {/if}
@@ -33,7 +33,7 @@
     border: 1px solid var(--neutral-70);
     border-radius: 16px;
     padding: 16px 24px;
-    padding-right: calc(var(--close-target-size) + 24px);
+    padding-right: calc(var(--card-close-icon-right) + var(--card-close-icon-size) + 8px);
     width: 246px;
     display: flex;
     flex-direction: column;
@@ -54,8 +54,8 @@
   .tutorial-box__close {
     all: unset;
     position: absolute;
-    top: 12px;
-    right: 14px;
+    top: calc(var(--tutorial-close-icon-top) - (var(--close-target-size) - var(--card-close-icon-size)) / 2);
+    right: calc(var(--card-close-icon-right) - (var(--close-target-size) - var(--card-close-icon-size)) / 2);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -71,6 +71,12 @@
       color: var(--tutorial-txt);
     }
     &:focus-visible { outline: 2px solid currentColor; }
+  }
+
+  .tutorial-box__close-icon {
+    width: var(--card-close-icon-size);
+    height: var(--card-close-icon-size);
+    opacity: 0.56;
   }
 
   .tutorial-box__body {

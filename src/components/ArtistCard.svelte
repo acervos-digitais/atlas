@@ -86,7 +86,9 @@
   <div class="artist-card" role="dialog" aria-label="Detalhes do artista">
     <header class="artist-card__header">
       <h2 class="artist-card__name">{creatorName}</h2>
-      <button class="artist-card__close" on:click={close} aria-label={ARTIST_CARD_LABELS[locale].close}>×</button>
+      <button class="artist-card__close" on:click={close} aria-label={ARTIST_CARD_LABELS[locale].close}>
+        <span class="artist-card__close-icon" aria-hidden="true"></span>
+      </button>
     </header>
 
     <div class="artist-card__body">
@@ -210,6 +212,7 @@
     justify-content: space-between;
     gap: 8px;
     padding: 14px 14px 10px;
+    padding-right: calc(var(--card-close-icon-right) + var(--card-close-icon-size) + 8px);
     flex-shrink: 0;
   }
 
@@ -225,20 +228,29 @@
 
   .artist-card__close {
     all: unset;
+    position: absolute;
+    top: calc(var(--artist-close-icon-top) - (var(--close-target-size) - var(--card-close-icon-size)) / 2);
+    right: calc(var(--card-close-icon-right) - (var(--close-target-size) - var(--card-close-icon-size)) / 2);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: var(--close-target-size);
     height: var(--close-target-size);
-    color: var(--txt-hl);
+    color: var(--txt);
     font-size: var(--close-symbol-size);
     line-height: var(--line-height-none);
     cursor: pointer;
     flex-shrink: 0;
-    margin-top: 1px;
 
     &:hover { color: var(--txt); }
     &:focus-visible { outline: 2px solid currentColor; }
+  }
+
+  .artist-card__close-icon {
+    width: var(--card-close-icon-size);
+    height: var(--card-close-icon-size);
+    background-color: currentColor;
+    mask: url('/close-icon.png') center / contain no-repeat;
   }
 
   .artist-card__body {

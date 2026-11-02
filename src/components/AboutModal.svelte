@@ -84,7 +84,7 @@
     class="about-modal__close"
     on:click={close}
     aria-label={ABOUT_MODAL_LABELS[locale].closeButton}
-  >×</button>
+  ><img class="about-modal__close-icon" src="{import.meta.env.BASE_URL}close-icon.png" alt="" /></button>
 
   <!-- Título -->
   <h2 class="about-modal__title" id="about-modal-title">{ABOUT_MODAL_LABELS[locale].title}</h2>
@@ -195,29 +195,28 @@
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 101;
-    width: min(560px, calc(100vw - 32px));
+    width: min(var(--about-modal-width), calc(100vw - 32px));
     box-sizing: border-box;
     max-height: calc(100vh - 64px);
     overflow-y: auto;
     background: var(--color-black);
-    border-radius: 16px;
-    padding: 40px;
-    box-shadow: 0 0 60px rgba(255, 255, 255, 0.08);
+    border-radius: var(--about-modal-radius);
+    padding: var(--about-modal-padding);
+    box-shadow: var(--about-modal-shadow);
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: var(--about-modal-gap);
     overflow-wrap: anywhere;
 
     @media (max-width: 760px) {
       padding: calc(var(--close-target-size) + 24px) 20px 24px;
-      border-radius: 12px;
     }
   }
 
   .about-modal__close {
     position: absolute;
-    top: 16px;
-    right: 20px;
+    top: calc(var(--about-close-top) - (var(--close-target-size) - var(--about-close-size)) / 2);
+    right: calc(var(--about-close-right) - (var(--close-target-size) - var(--about-close-size)) / 2);
     background: none;
     border: none;
     color: var(--neutral-10);
@@ -240,27 +239,34 @@
     &:focus-visible { outline: 2px solid currentColor; }
   }
 
+  .about-modal__close-icon {
+    width: var(--about-close-size);
+    height: var(--about-close-size);
+    opacity: 0.56;
+  }
+
   .about-modal__title {
-    font-size: 13px;
+    font-size: var(--about-title-size);
     font-weight: 700;
-    letter-spacing: 0.12em;
+    letter-spacing: var(--letter-spacing-tight);
     text-transform: uppercase;
-    color: var(--txt);
+    color: var(--color-white);
+    line-height: 1.4;
     margin: 0;
     padding-right: var(--close-target-size);
   }
 
   .about-modal__body {
     font-size: var(--about-body-size);
-    line-height: 1.4;
-    letter-spacing: 0.05em;
+    line-height: var(--about-line-height);
+    letter-spacing: var(--letter-spacing-tight);
     text-transform: uppercase;
-    color: var(--neutral-10);
+    color: var(--color-white);
     margin: 0;
   }
 
   .about-modal__link {
-    color: var(--neutral-10);
+    color: inherit;
     text-underline-offset: 3px;
 
     &:hover {
@@ -270,55 +276,46 @@
 
   /* ─── Créditos ─────────────────────────────────────────────── */
   .about-modal__credits {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 4px;
-    border-top: 1px solid var(--neutral-60);
-    padding-top: 16px;
+    margin: 0;
+    color: var(--color-white);
     font-size: var(--about-meta-size);
-    line-height: 1.4;
+    line-height: var(--about-line-height);
+    letter-spacing: var(--letter-spacing-tight);
   }
 
   .about-modal__credits-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-    gap: 12px;
-    align-items: baseline;
+    display: block;
   }
 
   dt {
+    display: inline;
     font-size: inherit;
     font-weight: 700;
-    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--neutral-10);
     white-space: normal;
+    &::after { content: ': '; }
   }
 
   dd {
+    display: inline;
     font-size: inherit;
-    letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--neutral-10);
     margin: 0;
   }
 
   /* ─── Logos FAPESP e FAU-USP ──────────────────────────────────────────── */
   .about-modal__logo-group {
-    padding-top: 24px;
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
+    margin-top: calc(var(--about-credits-gap) - var(--about-modal-gap));
   }
 
   .about-modal__logo {
-    color: var(--color-white);
-    height: 32px;
+    display: block;
+    height: var(--about-logo-height);
     width: auto;
-    opacity: 0.9;
-    /* Oculta o broken-image indicator se o arquivo não existir */
-    &:not([src]), &[src=''] {
-      display: none;
-    }
+    max-width: 100%;
+    object-fit: contain;
   }
 </style>
