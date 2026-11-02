@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { render } from 'svelte/server';
 import ArtworkStrip from '../../components/ArtworkStrip.svelte';
 import { sortArtworks } from '../dataUtils.js';
+import { ARTWORK_STRIP_KEYBOARD_STEP } from '../constants.js';
 
 const source = readFileSync(new URL('../../components/ArtworkStrip.svelte', import.meta.url), 'utf8');
 const appSource = readFileSync(new URL('../../App.svelte', import.meta.url), 'utf8');
@@ -30,6 +31,21 @@ const artwork = (id, image = '') => ({
 });
 
 describe('ArtworkStrip renderizado', () => {
+  test('não ocupa espaço quando não há obras', () => {
+    expect(render(ArtworkStrip, { props: { artworks: [] } }).body).not.toContain('<section');
+  });
+
+  test.each(['pt', 'en'])('renderiza alça e controle independentes em %s', locale => {
+    const { body } = render(ArtworkStrip, { props: { locale, artworks: [artwork('a')] } });
+    expect(body).toContain('role="separator"');
+    expect(body).toContain('aria-orientation="horizontal"');
+    expect(body).toContain('aria-valuenow="153"');
+    expect(body).toContain('artwork-chevron.svg');
+    expect(body).toContain(`class="artwork-strip__label`);
+    expect(body).toContain(locale === 'pt' ? 'Conheça as obras' : 'Learn about the works');
+    expect(body).not.toContain('artwork-strip__tab-image');
+    expect(body).toContain(locale === 'pt' ? 'Ajustar altura' : 'Resize artwork');
+  });
   test.each([['pt', 'Imagem indisponível'], ['en', 'Image unavailable']])(
     'preserva obras, ordem e identidade com imagem ausente em %s',
     (locale, label) => {
@@ -50,6 +66,83 @@ describe('ArtworkStrip renderizado', () => {
     expect(body).toContain(`aria-expanded="${!collapsed}"`);
     expect(body.includes(' inert')).toBe(collapsed);
     expect(body).toContain('Obra a');
+  });
+});
+
+function resizeController() {
+  const handlers = source.slice(source.indexOf('  function setHeight('), source.indexOf('  /** Distância'));
+  let scheduled;
+  const cancel = vi.fn(() => { scheduled = null; });
+  const controller = new Function(
+    'requestAnimationFrame', 'cancelAnimationFrame', 'ARTWORK_STRIP_KEYBOARD_STEP',
+    `let minHeight = 30, maxHeight = 480, stripHeight = 153, customHeight = null;
+     let collapsed = false, drag = null, dragFrame = null, pendingHeight = null;
+     const onArtworkPointerLeave = () => {};
+     ${handlers}
+     return { setHeight, startResize, moveResize, endResize, resizeByKeyboard,
+       state() {
+         stripHeight = collapsed ? minHeight : Math.min(maxHeight, customHeight ?? 153);
+         return { height: stripHeight, customHeight, collapsed, dragging: drag !== null };
+       }
+     };`,
+  )(cb => { scheduled = cb; return 1; }, cancel, ARTWORK_STRIP_KEYBOARD_STEP);
+  return { ...controller, flush() { const cb = scheduled; scheduled = null; cb?.(); }, cancel };
+}
+
+describe('redimensionamento da faixa', () => {
+  test('limita expansão e recolhe sem perder última altura expandida', () => {
+    const c = resizeController();
+    c.setHeight(900);
+    expect(c.state().height).toBe(480);
+    c.setHeight(-200);
+    expect(c.state()).toMatchObject({ height: 30, collapsed: true, customHeight: 480 });
+  });
+
+  test('teclado suporta setas, Home e End sem capturar outras teclas', () => {
+    const c = resizeController();
+    const preventDefault = vi.fn();
+    c.resizeByKeyboard({ key: 'ArrowUp', preventDefault });
+    expect(c.state().height).toBe(153 + ARTWORK_STRIP_KEYBOARD_STEP);
+    c.resizeByKeyboard({ key: 'ArrowDown', preventDefault });
+    expect(c.state().height).toBe(153);
+    c.resizeByKeyboard({ key: 'End', preventDefault });
+    expect(c.state().height).toBe(480);
+    c.resizeByKeyboard({ key: 'Home', preventDefault });
+    expect(c.state().collapsed).toBe(true);
+    c.resizeByKeyboard({ key: 'Tab', preventDefault });
+    expect(preventDefault).toHaveBeenCalledTimes(4);
+  });
+
+  test.each(['mouse', 'touch', 'pen'])('arraste %s agrupa movimentos e para no release', pointerType => {
+    const c = resizeController();
+    const target = { setPointerCapture: vi.fn(), hasPointerCapture: () => true, releasePointerCapture: vi.fn() };
+    const event = (clientY, extra = {}) => ({
+      clientY, pointerId: 7, pointerType, isPrimary: true, button: 0,
+      currentTarget: target, preventDefault: vi.fn(), ...extra,
+    });
+    c.startResize(event(500));
+    c.moveResize(event(450));
+    c.moveResize(event(400));
+    expect(c.state().height).toBe(153);
+    c.flush();
+    expect(c.state().height).toBe(253);
+    c.endResize(event(380, { type: 'pointerup' }));
+    expect(c.state()).toMatchObject({ height: 273, dragging: false });
+    c.moveResize(event(100));
+    c.flush();
+    expect(c.state().height).toBe(273);
+    expect(target.releasePointerCapture).toHaveBeenCalledWith(7);
+  });
+
+  test.each(['pointercancel', 'lostpointercapture'])('%s conclui movimento pendente e limpa arraste', type => {
+    const c = resizeController();
+    const target = { setPointerCapture: vi.fn(), hasPointerCapture: () => false };
+    const event = { pointerId: 1, isPrimary: true, button: 0, currentTarget: target, preventDefault: vi.fn() };
+    c.startResize({ ...event, clientY: 400 });
+    c.moveResize({ ...event, clientY: 300 });
+    c.endResize({ ...event, type });
+    expect(c.state()).toMatchObject({ height: 253, dragging: false });
+    expect(c.cancel).toHaveBeenCalled();
   });
 });
 

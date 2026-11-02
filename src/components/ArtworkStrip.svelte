@@ -3,8 +3,14 @@
 import {
   UNDATED_YEAR,
   ARTWORK_STRIP_HOVER_DELAY,
-  ARTWORK_STRIP_TRANSITION_DURATION,
   ARTWORK_STRIP_DEFAULT_MESSAGE,
+  ARTWORK_STRIP_HEIGHT_EXPANDED,
+  ARTWORK_STRIP_HEIGHT_COLLAPSED,
+  ARTWORK_STRIP_HEIGHT_MOBILE_EXPANDED,
+  ARTWORK_STRIP_HEIGHT_MOBILE_COLLAPSED,
+  ARTWORK_STRIP_MAX_FRACTION,
+  ARTWORK_STRIP_KEYBOARD_STEP,
+  ARTWORK_STRIP_CHEVRON_PATH,
 } from '../lib/constants.js';
 import { formatAcervoLabel } from '../lib/dataUtils.js';
 import { availableArtworkImage, imageSourceKey, recordImageFailure } from '../lib/artworkImages.js';
@@ -41,9 +47,88 @@ import { availableArtworkImage, imageSourceKey, recordImageFailure } from '../li
     };
   }
 
-  /** Quando true, renderiza como overlay flutuante de largura variável (mobile). */
+  /** Quando true, usa as dimensões compactas do layout mobile. */
   export let mobile = false;
   export let onArtistSelect = null;
+
+  let availableHeight = null;
+  let customHeight = null;
+  let drag = null;
+  let dragFrame = null;
+  let pendingHeight = null;
+  $: tabHeight = mobile ? ARTWORK_STRIP_HEIGHT_MOBILE_COLLAPSED : ARTWORK_STRIP_HEIGHT_COLLAPSED;
+  $: initialHeight = mobile ? ARTWORK_STRIP_HEIGHT_MOBILE_EXPANDED : ARTWORK_STRIP_HEIGHT_EXPANDED;
+  $: maxHeight = availableHeight === null ? initialHeight : availableHeight * ARTWORK_STRIP_MAX_FRACTION;
+  $: minHeight = Math.min(tabHeight, maxHeight);
+  $: stripHeight = Math.min(maxHeight, collapsed ? minHeight : Math.max(minHeight, customHeight ?? initialHeight));
+  $: labels = ARTWORK_STRIP_DEFAULT_MESSAGE[locale];
+  $: artworkLabel = selectedCreator ? `${labels.worksBy} ${selectedCreator}` : labels.empty;
+
+  function observeAvailableSpace(node) {
+    const update = () => {
+      availableHeight = node.parentElement.getBoundingClientRect().height;
+    };
+    const observer = new ResizeObserver(update);
+    observer.observe(node.parentElement);
+    update();
+    return { destroy: () => observer.disconnect() };
+  }
+
+  function observeScroll(node) {
+    const observer = new ResizeObserver(handleScroll);
+    observer.observe(node);
+    return { destroy: () => observer.disconnect() };
+  }
+
+  function setHeight(height) {
+    const next = Math.max(minHeight, Math.min(maxHeight, height));
+    collapsed = next <= minHeight;
+    if (!collapsed) customHeight = next;
+  }
+
+  function startResize(event) {
+    if (!event.isPrimary || event.button !== 0 || drag) return;
+    event.preventDefault();
+    onArtworkPointerLeave();
+    drag = { id: event.pointerId, y: event.clientY, height: stripHeight };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function moveResize(event) {
+    if (!drag || drag.id !== event.pointerId) return;
+    pendingHeight = drag.height + drag.y - event.clientY;
+    if (dragFrame !== null) return;
+    dragFrame = requestAnimationFrame(() => {
+      dragFrame = null;
+      setHeight(pendingHeight);
+      pendingHeight = null;
+    });
+  }
+
+  function endResize(event) {
+    if (!drag || drag.id !== event.pointerId) return;
+    if (dragFrame !== null) cancelAnimationFrame(dragFrame);
+    dragFrame = null;
+    if (event.type === 'pointerup') setHeight(drag.height + drag.y - event.clientY);
+    else if (pendingHeight !== null) setHeight(pendingHeight);
+    pendingHeight = null;
+    drag = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  }
+
+  function resizeByKeyboard(event) {
+    const heights = {
+      ArrowUp: stripHeight + ARTWORK_STRIP_KEYBOARD_STEP,
+      ArrowDown: stripHeight - ARTWORK_STRIP_KEYBOARD_STEP,
+      Home: minHeight,
+      End: maxHeight,
+    };
+    if (!(event.key in heights)) return;
+    event.preventDefault();
+    setHeight(heights[event.key]);
+  }
 
   /** Distância (em px) até o fim do scroll vertical — controla o fade. */
   let scrollEl;
@@ -125,6 +210,7 @@ import { availableArtworkImage, imageSourceKey, recordImageFailure } from '../li
   onDestroy(() => {
     if (observer) observer.disconnect();
     clearTimeout(hoverTimer);
+    if (dragFrame !== null) cancelAnimationFrame(dragFrame);
   });
 
   /**
@@ -180,32 +266,54 @@ import { availableArtworkImage, imageSourceKey, recordImageFailure } from '../li
   <section
     class="artwork-strip"
     use:measureHeight
+    use:observeAvailableSpace
+    style:height="{stripHeight}px"
+    style:--artwork-tab-height="{tabHeight}px"
     class:artwork-strip--collapsed={collapsed}
     class:artwork-strip--mobile={mobile}
-    aria-label="Obras dos artistas selecionados"
+    aria-label={artworkLabel}
   >
     <button
       type="button"
       class="artwork-strip__header"
       aria-expanded={!collapsed}
+      aria-label={`${labels.toggle} — ${artworkLabel}`}
       on:click={toggleCollapsed}
     >
       <span
         class="artwork-strip__chevron"
         class:artwork-strip__chevron--collapsed={collapsed}
+        style="--artwork-chevron: url('{import.meta.env.BASE_URL}{ARTWORK_STRIP_CHEVRON_PATH}')"
         aria-hidden="true"
-      >▾</span>
-      <span class="artwork-strip__label">
-        {selectedCreator ? `${ARTWORK_STRIP_DEFAULT_MESSAGE[locale].worksBy} ${selectedCreator}` : ARTWORK_STRIP_DEFAULT_MESSAGE[locale].empty}
-      </span>
+      ></span>
+      <span class="artwork-strip__label">{artworkLabel}</span>
     </button>
+    <!-- svelte-ignore a11y_no_noninteractive_tabindex a11y_no_noninteractive_element_interactions (Separador redimensionável segue o padrão WAI-ARIA Window Splitter.) -->
+    <div
+      class="artwork-strip__resize"
+      style:top="{tabHeight}px"
+      role="separator"
+      tabindex={collapsed ? -1 : 0}
+      aria-label={labels.resize}
+      aria-orientation="horizontal"
+      aria-valuemin={Math.round(minHeight)}
+      aria-valuemax={Math.round(maxHeight)}
+      aria-valuenow={Math.round(stripHeight)}
+      on:pointerdown={startResize}
+      on:pointermove={moveResize}
+      on:pointerup={endResize}
+      on:pointercancel={endResize}
+      on:lostpointercapture={endResize}
+      on:keydown={resizeByKeyboard}
+    ></div>
 
-    <!-- Wrapper animado: sempre no DOM, altura 0 quando colapsado -->
+    <!-- Mantém as obras no DOM ao recolher a faixa. -->
     <div class="artwork-strip__body" class:artwork-strip__body--collapsed={collapsed} inert={collapsed}>
       <div
         class="artwork-strip__scroll"
         class:artwork-strip__scroll--at-bottom={atBottom}
         bind:this={scrollEl}
+        use:observeScroll
         on:scroll={handleScroll}
       >
         <ul class="artwork-strip__grid">
@@ -270,83 +378,44 @@ import { availableArtworkImage, imageSourceKey, recordImageFailure } from '../li
     left: 0;
     right: 0;
     bottom: 0;
-    background: var(--bg);
     color: var(--txt);
-    pointer-events: auto;
-    /* height: ARTWORK_STRIP_HEIGHT_EXPANDED (248px) */
-    height: auto;
-    max-height: min(248px, max(36px, calc(100% - var(--map-controls-min-visible-height))));
+    pointer-events: none;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     box-sizing: border-box;
-    z-index: 5;
-    /* transition: height ARTWORK_STRIP_TRANSITION_DURATION (200ms) */
-    transition: height 200ms ease-out;
+    z-index: var(--artwork-strip-layer);
   }
 
-  .artwork-strip--collapsed {
-    /* height: ARTWORK_STRIP_HEIGHT_COLLAPSED (36px) */
-    height: 36px;
-  }
-
-  /* ── Mobile: overlay flutuante de largura variável ─────────────────── */
   .artwork-strip--mobile {
-    left: auto;
-    right: 12px;
-    bottom: 12px;
-    width: auto;
-    max-width: calc(100% - 24px);
-    border-radius: 8px;
-    border: 1px solid var(--bg-hl);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
-    /* height: ARTWORK_STRIP_HEIGHT_MOBILE_EXPANDED (65px) */
-    height: 65px;
+    --artwork-strip-tab-width: var(--artwork-strip-tab-mobile-width);
+    --artwork-strip-thumb-size: var(--artwork-strip-thumb-mobile-size);
+    --artwork-strip-padding-x: var(--artwork-strip-padding-mobile-x);
   }
 
-  .artwork-strip--mobile.artwork-strip--collapsed {
-    /* height: ARTWORK_STRIP_HEIGHT_MOBILE_COLLAPSED (31px) */
-    height: 31px;
-  }
-
-  /* No mobile a aba é mais baixa (31px) e a grid vira fileira horizontal. */
-  .artwork-strip--mobile .artwork-strip__header {
-    height: 31px;
-    padding: 0 12px;
-    font-size: var(--font-size-xs);
-  }
-
-  .artwork-strip--mobile .artwork-strip__grid {
-    grid-template-columns: none;
-    grid-auto-flow: column;
-    grid-auto-columns: 80px;
-    padding: 4px 12px 6px;
-  }
-
-  .artwork-strip--mobile .artwork-strip__scroll {
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-
-  /* ── Header clicável (chevron + label) ─────────────────────────────── */
   .artwork-strip__header {
     all: unset;
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 10px;
-    height: 36px;
-    padding: 0 20px;
+    gap: var(--artwork-strip-tab-gap);
+    width: min(100%, var(--artwork-strip-tab-width));
+    height: var(--artwork-tab-height);
+    min-height: 0;
+    overflow: hidden;
     cursor: pointer;
-    color: var(--txt-l);
-    font-size: var(--font-size-xs);
-    letter-spacing: var(--letter-spacing-wider);
-    text-transform: uppercase;
+    pointer-events: auto;
     flex-shrink: 0;
     box-sizing: border-box;
-
-    &:hover {
-      color: var(--txt);
-    }
+    padding: 0 var(--artwork-strip-tab-padding);
+    background: var(--artwork-strip-tab-bg);
+    color: var(--artwork-strip-tab-txt);
+    border: var(--artwork-strip-tab-border-width) solid var(--artwork-strip-tab-border);
+    border-bottom: none;
+    border-top-right-radius: var(--artwork-strip-tab-radius);
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-normal);
+    letter-spacing: var(--letter-spacing-tight);
 
     &:focus-visible {
       outline: 2px solid var(--txt);
@@ -355,16 +424,17 @@ import { availableArtworkImage, imageSourceKey, recordImageFailure } from '../li
   }
 
   .artwork-strip__chevron {
-    display: inline-block;
-    width: 12px;
-    text-align: center;
-    color: var(--txt);
-    transform: rotate(0deg);
-    transition: transform 200ms ease-out;
+    display: block;
+    width: var(--font-size-xs);
+    height: var(--font-size-md);
+    flex-shrink: 0;
+    background: currentColor;
+    mask: var(--artwork-chevron) center / contain no-repeat;
+    -webkit-mask: var(--artwork-chevron) center / contain no-repeat;
   }
 
   .artwork-strip__chevron--collapsed {
-    transform: rotate(-90deg);
+    transform: rotate(180deg);
   }
 
   .artwork-strip__label {
@@ -373,18 +443,56 @@ import { availableArtworkImage, imageSourceKey, recordImageFailure } from '../li
     text-overflow: ellipsis;
   }
 
+  .artwork-strip__resize {
+    position: absolute;
+    left: 0;
+    z-index: 1;
+    width: 100%;
+    height: var(--artwork-strip-handle-height);
+    background: var(--artwork-strip-bg);
+    cursor: ns-resize;
+    touch-action: none;
+    user-select: none;
+    pointer-events: auto;
+
+    &::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      width: var(--artwork-strip-grip-width);
+      height: var(--artwork-strip-grip-height);
+      background: linear-gradient(to bottom, var(--artwork-strip-tab-txt) 33.333%, transparent 33.333% 66.667%, var(--artwork-strip-tab-txt) 66.667%);
+      opacity: var(--artwork-strip-grip-opacity);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--txt);
+      outline-offset: -2px;
+    }
+  }
+
   /* ── Wrapper do body animado ──────────────────────────────────────── */
   .artwork-strip__body {
     flex: 1 1 auto;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    min-height: 0;
+    padding-top: var(--artwork-strip-handle-height);
+    pointer-events: auto;
+    background: var(--artwork-strip-bg);
+    backdrop-filter: blur(var(--artwork-strip-blur));
+    -webkit-backdrop-filter: blur(var(--artwork-strip-blur));
   }
 
   /* ── Container scrollável da grid ──────────────────────────────────── */
   .artwork-strip__scroll {
     position: relative;
     flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
     scrollbar-width: thin;
@@ -417,20 +525,15 @@ import { availableArtworkImage, imageSourceKey, recordImageFailure } from '../li
   /* ── Grid vertical de thumbnails quadrados ─────────────────────────── */
   .artwork-strip__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    gap: 8px;
-    padding: 8px 20px 16px;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--artwork-strip-thumb-size)), 1fr));
+    gap: var(--artwork-strip-gap-y) var(--artwork-strip-gap-x);
+    padding: 0 var(--artwork-strip-padding-x) var(--artwork-strip-padding-y);
     margin: 0;
     list-style: none;
   }
 
   .artwork {
     aspect-ratio: 1 / 1;
-  }
-
-  .artwork-strip--mobile .artwork {
-    aspect-ratio: auto;
-    height: 24px;
   }
 
   .artwork__btn {
