@@ -11,7 +11,7 @@
   /** Faixa de layout: 'mobile' | 'tablet' | 'desktop'. */
   export let breakpoint = 'desktop';
 
-  /** Espaçamento do topo da faixa de obras (em px), para ajustar a posição do painel. */
+  /** Altura do corpo da faixa de imagens (em px), sem a aba que sobrepõe o painel. */
   export let artworkStripInset = 0;
 
   // ─── Estado colapsado — persiste em localStorage ───────────────────────────
@@ -253,10 +253,14 @@
     line-height: var(--line-height-normal);
     letter-spacing: var(--letter-spacing-tight);
     pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - var(--artwork-strip-inset, 0px));
     max-height: calc(100% - var(--artwork-strip-inset, 0px));
   }
 
   .profile-panel--collapsed {
+    height: auto;
     right: 0;
     border-bottom-left-radius: 14px;
     border-bottom: 1px solid var(--bg-hl);
@@ -284,6 +288,7 @@
     cursor: pointer;
     white-space: nowrap;
     gap: 14.4px;
+    flex-shrink: 0;
 
     &:hover {
       background: var(--bg);
@@ -313,7 +318,8 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    max-height: calc(100vh - 148px - var(--artwork-strip-inset, 0px));
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--bg-hl) transparent;
@@ -480,7 +486,6 @@
     .profile-panel__content {
       padding: 12px;
       gap: 12px;
-      max-height: calc(100vh - 120px);
     }
 
     .profile-panel__donuts {

@@ -545,16 +545,23 @@ export const ZOOM_MAX_3D = 5;
 export const ARTWORK_DEPRIORITIZED_ACERVOS = ['MAC'];
 
 /** Altura da faixa de obras quando expandida em tablet/desktop (px). */
-export const ARTWORK_STRIP_HEIGHT_EXPANDED = 248;
+export const ARTWORK_STRIP_HEIGHT_EXPANDED = 153;
 
 /** Altura da faixa de obras quando colapsada (só header) em tablet/desktop (px). */
-export const ARTWORK_STRIP_HEIGHT_COLLAPSED = 36;
+export const ARTWORK_STRIP_HEIGHT_COLLAPSED = 30;
 
-/** Altura da faixa de obras quando expandida no mobile (overlay flutuante) (px). */
-export const ARTWORK_STRIP_HEIGHT_MOBILE_EXPANDED = 65;
+/** Altura inicial total da faixa de obras no mobile, incluindo aba (px). */
+export const ARTWORK_STRIP_HEIGHT_MOBILE_EXPANDED = 96;
 
 /** Altura da aba/botão de abertura da faixa de obras no mobile (px). */
 export const ARTWORK_STRIP_HEIGHT_MOBILE_COLLAPSED = 31;
+
+/** Fração máxima da área do mapa ocupada pela faixa, incluindo a aba. */
+export const ARTWORK_STRIP_MAX_FRACTION = 0.6;
+/** Incremento de redimensionamento pelo teclado (px). */
+export const ARTWORK_STRIP_KEYBOARD_STEP = 16;
+/** Chevron duplo do Figma, sem o fundo da aba. */
+export const ARTWORK_STRIP_CHEVRON_PATH = 'artwork-chevron.svg';
 
 /** Duração da transição de altura ao expandir/colapsar (ms). */
 export const ARTWORK_STRIP_TRANSITION_DURATION = 200;
@@ -883,11 +890,15 @@ export const ARTWORK_STRIP_DEFAULT_MESSAGE = {
     empty: 'Conheça as obras dos artistas nos museus e arquivos selecionados',
     worksBy: 'Obras de',
     imageUnavailable: 'Imagem indisponível',
+    resize: 'Ajustar altura da faixa de obras',
+    toggle: 'Recolher ou expandir faixa de obras',
   },
   en: {
     empty: 'Learn about the works of artists in the selected museums and archives',
     worksBy: 'Works by',
     imageUnavailable: 'Image unavailable',
+    resize: 'Resize artwork strip',
+    toggle: 'Collapse or expand artwork strip',
   },
 };
 

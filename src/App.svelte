@@ -191,6 +191,7 @@ import {
   $: stripCollapsedH = isMobile ? ARTWORK_STRIP_HEIGHT_MOBILE_COLLAPSED : ARTWORK_STRIP_HEIGHT_COLLAPSED;
   $: stripExpandedH = isMobile ? ARTWORK_STRIP_HEIGHT_MOBILE_EXPANDED : ARTWORK_STRIP_HEIGHT_EXPANDED;
   $: artworkStripInset = artworksForStrip.length === 0 ? 0 : (artworkStripHeight || (artworkStripCollapsed ? stripCollapsedH : stripExpandedH));
+  $: artworkStripBodyInset = Math.max(0, artworkStripInset - stripCollapsedH);
 
   onMount(async () => {
     try {
@@ -567,17 +568,19 @@ import {
           {locale}
           onClose={handleArtistClose}
         />
-        <div class="map-overlay-zoom">
-          <ZoomButtons onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} />
-        </div>
-        <div class="map-overlay-right">
-          <ProjectionToggle {projectionType} {locale} onChange={handleProjectionChange} />
-        </div>
-        <div class="map-overlay-theme">
-          <ThemeToggle {theme} {locale} onThemeChange={handleThemeChange} />
+        <div class="map-overlays">
+          <div class="map-overlay-right">
+            <ProjectionToggle {projectionType} {locale} onChange={handleProjectionChange} />
+          </div>
+          <div class="map-overlay-theme">
+            <ThemeToggle {theme} {locale} onThemeChange={handleThemeChange} />
+          </div>
+          <div class="map-overlay-zoom">
+            <ZoomButtons onZoomIn={handleZoomIn} onZoomOut={handleZoomOut} />
+          </div>
         </div>
         <MapStats stats={statsBlock} {locale} />
-        <ProfilePanel bubbles={bubblesForMap} {breakpoint} {locale} artworkStripInset={artworkStripInset} />
+        <ProfilePanel bubbles={bubblesForMap} {breakpoint} {locale} artworkStripInset={artworkStripBodyInset} />
         {#if isMobile}
           <button
             class="tutorial-reopen-mobile"
@@ -752,39 +755,36 @@ import {
     background: var(--bg);
   }
 
-  .map-overlay-zoom {
+  .map-overlays {
     position: absolute;
-    bottom: calc(var(--artwork-strip-inset, 0px) + 16px);
-    right: 16px;
+    top: min(calc(var(--map-control-size) + var(--map-control-gap) - var(--map-control-focus-space)), max(0px, calc(100% - var(--artwork-strip-inset, 0px) - var(--map-control-size) - var(--map-control-gap))));
+    bottom: calc(var(--artwork-strip-inset, 0px) + min(var(--map-control-gap), max(0px, calc(100% - var(--artwork-strip-inset, 0px) - var(--map-control-size)))) - var(--map-control-focus-space));
+    right: calc(var(--map-control-gap) - var(--map-control-focus-space));
+    width: calc(var(--map-control-size) + 2 * var(--map-control-focus-space));
+    padding: var(--map-control-focus-space);
     z-index: 10; /* acima do canvas, abaixo do ArtistCard (z-index: 20) */
     pointer-events: none;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    justify-content: space-between;
+    gap: var(--map-control-gap);
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
   }
 
   .map-overlay-right {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    z-index: 10; /* acima do canvas, abaixo do ArtistCard (z-index: 20) */
+    flex-shrink: 0;
     pointer-events: none;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-    transform: translateY(44px); /* empurra pra baixo para não colidir com botão de perfil dos resultados */
   }
 
-  /* Toggle de tema (sol/lua) — centralizado verticalmente na área visível
-     do mapa (descontando a faixa de obras na base), na borda direita.
-     Referência Figma modo claro. */
   .map-overlay-theme {
-    position: absolute;
-    top: calc((100% - var(--artwork-strip-inset, 0px)) / 2);
-    right: 16px;
-    transform: translateY(-50%);
-    z-index: 10;
+    flex-shrink: 0;
+    pointer-events: none;
+  }
+
+  .map-overlay-zoom {
+    flex-shrink: 0;
     pointer-events: none;
   }
 
