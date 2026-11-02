@@ -9,6 +9,23 @@ function styles(name) {
 }
 
 describe('Cards e Sobre — contrato visual compartilhado', () => {
+  test('fechamento do artista acompanha a cor do nome em ambos os temas', () => {
+    const css = styles('ArtistCard');
+    const close = css.match(/\.artist-card__close\s*\{([^}]+)\}/)[1];
+    const icon = css.match(/\.artist-card__close-icon\s*\{([^}]+)\}/)[1];
+    expect(close).toContain('color: var(--txt)');
+    expect(icon).toContain('background-color: currentColor');
+    expect(icon).toContain('mask: url("/close-icon.png")');
+    expect(icon).not.toContain('opacity:');
+  });
+
+  test.each(['ArtistCard', 'TutorialBox'])('%s posiciona o ícone independentemente do alvo de fechamento', (name) => {
+    const css = styles(name);
+    expect(css).toContain('position: absolute');
+    expect(css).toContain('width: var(--card-close-icon-size)');
+    expect(css).toContain('(var(--close-target-size) - var(--card-close-icon-size)) / 2');
+  });
+
   test.each(['ArtistCard', 'TutorialBox', 'AboutModal'])('%s preserva alvo e símbolo independentes', (name) => {
     const css = styles(name);
     expect(css).toContain('width: var(--close-target-size)');
@@ -30,6 +47,11 @@ describe('Cards e Sobre — contrato visual compartilhado', () => {
     const css = styles('AboutModal');
     expect(css).toContain('font-size: var(--about-body-size)');
     expect(css).toContain('font-size: var(--about-meta-size)');
+    expect(css).toContain('font-size: var(--about-title-size)');
+    expect(css).toContain('line-height: var(--about-line-height)');
+    expect(css).toContain('width: min(var(--about-modal-width), 100vw - 32px)');
+    expect(css).toContain('border-radius: var(--about-modal-radius)');
+    expect(css).toContain('box-shadow: var(--about-modal-shadow)');
     expect(css).toContain('line-height: 1.4');
     expect(css).toContain('white-space: normal');
   });
