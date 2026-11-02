@@ -46,10 +46,9 @@
       },
     };
   }
-  import { loadData } from './lib/dataUtils.js';
+  import { loadData, sortArtworks } from './lib/dataUtils.js';
   import { applyFilters, applyTrajectoryFilter, computeAvailableOptions } from './lib/filterModel.js';
 import {
-  UNDATED_YEAR,
   ARTWORK_STRIP_HEIGHT_EXPANDED,
   ARTWORK_STRIP_HEIGHT_COLLAPSED,
   ARTWORK_STRIP_HEIGHT_MOBILE_EXPANDED,
@@ -364,16 +363,10 @@ import {
   // ── Obras para o ArtworkStrip: quando há artista selecionado, mostra só as
   // obras dele; caso contrário, flatmap dos criadores visíveis, dedup por id, ordenado.
   $: artworksForStrip = (() => {
-    const isUndated = (y) => y === null || y === undefined || y === UNDATED_YEAR || typeof y !== 'number' || Number.isNaN(y);
-    const sortWorks = (arr) => [...arr].sort((b, a) => {
-      const au = isUndated(a.year); const bu = isUndated(b.year);
-      if (au && bu) return 0; if (au) return 1; if (bu) return -1;
-      return b.year - a.year;
-    });
     if (selectedArtist?.creator) {
       const list = artworksByCreator.get(selectedArtist.creator) ?? [];
       const filtered = activeAcervos.size > 0 ? list.filter(art => activeAcervos.has(art.museum)) : list;
-      return sortWorks(filtered);
+      return sortArtworks(filtered, true);
     }
     const visibleCreators = new Set(bubblesForMap.map(b => b.creator).filter(Boolean));
     const seen = new Set();
@@ -388,7 +381,7 @@ import {
         out.push(art);
       }
     }
-    return sortWorks(out);
+    return sortArtworks(out, true);
   })();
   $: birthCount = bubblesForMap.filter(b => b.type === 'birth').length;
   $: deathCount = bubblesForMap.filter(b => b.type === 'death').length;

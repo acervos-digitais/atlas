@@ -46,6 +46,33 @@ describe('continentForIsoId', () => {
 });
 
 describe('sortArtworks', () => {
+  test.each([false, true])('MAC fica no fim sem inverter prioridade (ascending=%s)', ascending => {
+    const input = [
+      { id: 'mac-old', museum: 'MAC', year: 1900 },
+      { id: 'other-new', museum: 'Outro', year: 2000 },
+      { id: 'mac-undated', museum: 'MAC', year: null },
+      { id: 'other-undated', museum: 'Outro', year: null },
+      { id: 'mac-new', museum: 'MAC', year: 2020 },
+      { id: 'other-old', museum: 'Outro', year: 1800 },
+    ];
+    const snapshot = [...input];
+    expect(sortArtworks(input, ascending).map(o => o.id)).toEqual(ascending
+      ? ['other-undated', 'other-old', 'other-new', 'mac-undated', 'mac-old', 'mac-new']
+      : ['other-new', 'other-old', 'other-undated', 'mac-new', 'mac-old', 'mac-undated']);
+    expect(input).toEqual(snapshot);
+  });
+
+  test('preserva empates e normaliza MAC USP antes de ordenar', () => {
+    const works = parseArtworkDict({
+      a: { creator: 'Artista', museum: 'MAC USP', year: 2000 },
+      b: { creator: 'Artista', museum: 'Outro', year: 2000 },
+      c: { creator: 'Artista', museum: 'MAC', year: 2000 },
+      d: { creator: 'Artista', museum: 'Outro', year: 2000 },
+    }).get('Artista');
+    expect(works.map(o => o.id)).toEqual(['b', 'd', 'a', 'c']);
+    expect(works.find(o => o.id === 'a').museum).toBe('MAC');
+  });
+
   test('ordena por year decrescente', () => {
     const out = sortArtworks([
       { id: 'a', year: 1950 },
@@ -53,6 +80,30 @@ describe('sortArtworks', () => {
       { id: 'c', year: 1900 },
     ]);
     expect(out.map(o => o.id)).toEqual(['b', 'a', 'c']);
+  });
+
+  describe('configuração dos acervos despriorizados', () => {
+    afterEach(() => {
+      vi.doUnmock('../constants.js');
+      vi.resetModules();
+    });
+
+    test.each([
+      [[], ['mac', 'outro', 'terceiro']],
+      [['MAC', 'Outro'], ['terceiro', 'mac', 'outro']],
+    ])('aplica a lista %j', async (acervos, expected) => {
+      vi.resetModules();
+      vi.doMock('../constants.js', async importOriginal => ({
+        ...await importOriginal(),
+        ARTWORK_DEPRIORITIZED_ACERVOS: acervos,
+      }));
+      const { sortArtworks: configuredSort } = await import('../dataUtils.js');
+      expect(configuredSort([
+        { id: 'mac', museum: 'MAC', year: 2000 },
+        { id: 'outro', museum: 'Outro', year: 1990 },
+        { id: 'terceiro', museum: 'Terceiro', year: 1980 },
+      ]).map(o => o.id)).toEqual(expected);
+    });
   });
 
   test('coloca year === 9999 no final', () => {

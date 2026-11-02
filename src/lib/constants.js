@@ -541,6 +541,9 @@ export const ZOOM_MAX_3D = 5;
 
 // ─── Artwork Strip: dimensões e timing ────────────────────────────────────────
 
+/** IDs internos dos acervos cujas obras ficam no fim. MAC-USP está temporariamente indisponível; [] desativa a regra. */
+export const ARTWORK_DEPRIORITIZED_ACERVOS = ['MAC'];
+
 /** Altura da faixa de obras quando expandida em tablet/desktop (px). */
 export const ARTWORK_STRIP_HEIGHT_EXPANDED = 248;
 

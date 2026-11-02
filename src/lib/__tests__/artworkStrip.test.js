@@ -1,8 +1,28 @@
 import { readFileSync } from 'node:fs';
 import { render } from 'svelte/server';
 import ArtworkStrip from '../../components/ArtworkStrip.svelte';
+import { sortArtworks } from '../dataUtils.js';
 
 const source = readFileSync(new URL('../../components/ArtworkStrip.svelte', import.meta.url), 'utf8');
+const appSource = readFileSync(new URL('../../App.svelte', import.meta.url), 'utf8');
+
+test.each([null, { creator: 'Artista' }])('ordenação da faixa com seleção %j', selectedArtist => {
+  const start = appSource.indexOf('$: artworksForStrip = (() => {');
+  const end = appSource.indexOf('})();', start);
+  const body = appSource.slice(start + '$: artworksForStrip = (() => {'.length, end);
+  const works = [
+    { id: 'mac', creators: ['Artista'], museum: 'MAC', year: 1800 },
+    { id: 'new', creators: ['Artista'], museum: 'Outro', year: 2000 },
+    { id: 'old', creators: ['Artista'], museum: 'Outro', year: 1900 },
+    { id: 'undated', creators: ['Artista'], museum: 'Outro', year: null },
+  ];
+  const result = new Function('sortArtworks', 'selectedArtist', 'artworksByCreator', 'activeAcervos', 'bubblesForMap', body)(
+    sortArtworks, selectedArtist, new Map([['Artista', works]]), new Set(), [{ creator: 'Artista' }],
+  );
+  expect(result.map(o => o.id)).toEqual(['undated', 'old', 'new', 'mac']);
+  const { body: rendered } = render(ArtworkStrip, { props: { artworks: result } });
+  expect(rendered.match(/class="artwork__btn\b/g)).toHaveLength(4);
+});
 
 const artwork = (id, image = '') => ({
   id, image, title: `Obra ${id}`, creators: ['Artista'], museum: 'Museu', year: 2000,
